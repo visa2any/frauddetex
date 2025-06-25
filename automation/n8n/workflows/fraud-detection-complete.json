@@ -1,0 +1,640 @@
+{
+  "name": "FraudShield - Complete Automation Pipeline",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "fraud-detection",
+        "options": {}
+      },
+      "name": "Webhook - Fraud Detection Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "fraud-detection-webhook"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Validate incoming request data\nconst requiredFields = ['email', 'ip', 'amount', 'currency'];\nconst data = items[0].json;\n\n// Check required fields\nfor (const field of requiredFields) {\n  if (!data[field]) {\n    throw new Error(`Missing required field: ${field}`);\n  }\n}\n\n// Validate email format\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nif (!emailRegex.test(data.email)) {\n  throw new Error('Invalid email format');\n}\n\n// Validate amount\nif (data.amount <= 0 || data.amount > 1000000) {\n  throw new Error('Invalid amount range');\n}\n\n// Add request metadata\ndata.requestId = $jmespath(items[0], 'headers.\"x-request-id\"') || require('crypto').randomUUID();\ndata.timestamp = new Date().toISOString();\ndata.userAgent = $jmespath(items[0], 'headers.\"user-agent\"') || 'unknown';\n\n// Add geo data if available\ndata.country = $jmespath(items[0], 'headers.\"cf-ipcountry\"') || 'unknown';\ndata.region = $jmespath(items[0], 'headers.\"cf-region\"') || 'unknown';\n\nconsole.log('✅ Request validated:', data.requestId);\n\nreturn items;"
+      },
+      "name": "Data Validation & Enrichment",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://fraud-detection.fraudshield.workers.dev/detect",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 5000
+        },
+        "sendQuery": false,
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.EDGE_API_KEY}}"
+            },
+            {
+              "name": "X-Request-ID",
+              "value": "={{$json.requestId}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{$json.email}}"
+            },
+            {
+              "name": "ip",
+              "value": "={{$json.ip}}"
+            },
+            {
+              "name": "amount",
+              "value": "={{$json.amount}}"
+            },
+            {
+              "name": "currency",
+              "value": "={{$json.currency}}"
+            },
+            {
+              "name": "country",
+              "value": "={{$json.country}}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{$json.timestamp}}"
+            }
+          ]
+        }
+      },
+      "name": "Edge ML Fraud Detection",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.fraudshield.community/threat-check",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 3000
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "ip",
+              "value": "={{$json.ip}}"
+            },
+            {
+              "name": "email_hash",
+              "value": "={{$crypto.createHash('sha256').update($json.email).digest('hex')}}"
+            },
+            {
+              "name": "request_id",
+              "value": "={{$json.requestId}}"
+            }
+          ]
+        }
+      },
+      "name": "Community Intelligence Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [680, 480]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Combine Edge ML and Community Intelligence results\nconst edgeResult = items[0].json;\nconst communityResult = items[1].json;\n\n// Calculate combined risk score\nlet combinedRiskScore = edgeResult.riskScore || 0;\n\n// Adjust based on community intelligence\nif (communityResult.threatLevel) {\n  switch (communityResult.threatLevel) {\n    case 'HIGH':\n      combinedRiskScore = Math.min(100, combinedRiskScore + 30);\n      break;\n    case 'MEDIUM':\n      combinedRiskScore = Math.min(100, combinedRiskScore + 15);\n      break;\n    case 'LOW':\n      combinedRiskScore = Math.max(0, combinedRiskScore - 10);\n      break;\n  }\n}\n\n// Determine final decision\nlet decision = 'APPROVE';\nlet action = 'auto_approve';\n\nif (combinedRiskScore >= 80) {\n  decision = 'BLOCK';\n  action = 'auto_block';\n} else if (combinedRiskScore >= 50) {\n  decision = 'REVIEW';\n  action = 'manual_review';\n}\n\n// Create comprehensive result\nconst result = {\n  requestId: edgeResult.requestId,\n  riskScore: combinedRiskScore,\n  decision,\n  action,\n  confidence: edgeResult.confidence || 85,\n  processingTime: (edgeResult.processingTime || 0) + (communityResult.processingTime || 0),\n  evidence: {\n    edge: edgeResult.features || [],\n    community: communityResult.indicators || [],\n    explanation: edgeResult.explanation || []\n  },\n  metadata: {\n    modelVersion: edgeResult.modelVersion || '1.0.0',\n    communityNodes: communityResult.nodes || 0,\n    timestamp: new Date().toISOString()\n  }\n};\n\nconsole.log(`🎯 Decision made: ${decision} (Score: ${combinedRiskScore})`);\n\nreturn [{ json: result }];"
+      },
+      "name": "Decision Fusion Engine",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 380]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.action}}",
+              "operation": "equal",
+              "value2": "auto_approve"
+            }
+          ]
+        }
+      },
+      "name": "Route Decision",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [1120, 380]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Auto-approve flow\nconst result = items[0].json;\n\n// Log approval\nconsole.log(`✅ Auto-approved: ${result.requestId}`);\n\n// Create response\nconst response = {\n  status: 'approved',\n  requestId: result.requestId,\n  riskScore: result.riskScore,\n  decision: result.decision,\n  processingTime: result.processingTime,\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: response }];"
+      },
+      "name": "Auto Approve",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.action}}",
+              "operation": "equal",
+              "value2": "manual_review"
+            }
+          ]
+        }
+      },
+      "name": "Check Review Queue",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [1340, 380]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "table": "manual_review_queue",
+        "columns": "request_id, risk_score, decision, evidence, created_at, status",
+        "additionalFields": {
+          "queryParameters": [
+            {
+              "name": "request_id",
+              "value": "={{$json.requestId}}"
+            },
+            {
+              "name": "risk_score",
+              "value": "={{$json.riskScore}}"
+            },
+            {
+              "name": "decision",
+              "value": "={{$json.decision}}"
+            },
+            {
+              "name": "evidence",
+              "value": "={{JSON.stringify($json.evidence)}}"
+            },
+            {
+              "name": "created_at",
+              "value": "={{new Date().toISOString()}}"
+            },
+            {
+              "name": "status",
+              "value": "pending"
+            }
+          ]
+        }
+      },
+      "name": "Add to Review Queue",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1560, 380],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-creds",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Auto-block flow\nconst result = items[0].json;\n\n// Log block\nconsole.log(`🚫 Auto-blocked: ${result.requestId}`);\n\n// Create response\nconst response = {\n  status: 'blocked',\n  requestId: result.requestId,\n  riskScore: result.riskScore,\n  decision: result.decision,\n  reason: 'High fraud risk detected',\n  processingTime: result.processingTime,\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: response }];"
+      },
+      "name": "Auto Block",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1340, 460]
+    },
+    {
+      "parameters": {
+        "webhookUrl": "={{$env.DISCORD_WEBHOOK_URL}}",
+        "text": "🚨 **High Risk Transaction Detected**\\n\\n📊 **Risk Score:** {{$json.riskScore}}%\\n🆔 **Request ID:** {{$json.requestId}}\\n⚡ **Processing Time:** {{$json.processingTime}}ms\\n🎯 **Decision:** {{$json.decision}}\\n\\n**Evidence:**\\n{{$json.evidence.explanation.join('\\n')}}"
+      },
+      "name": "Discord Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 1,
+      "position": [1560, 540]
+    },
+    {
+      "parameters": {
+        "to": "security@fraudshield.dev",
+        "subject": "High Risk Transaction Alert - {{$json.requestId}}",
+        "emailType": "html",
+        "message": "<h2>🚨 High Risk Transaction Detected</h2>\\n<p><strong>Request ID:</strong> {{$json.requestId}}</p>\\n<p><strong>Risk Score:</strong> {{$json.riskScore}}%</p>\\n<p><strong>Decision:</strong> {{$json.decision}}</p>\\n<p><strong>Processing Time:</strong> {{$json.processingTime}}ms</p>\\n\\n<h3>Evidence:</h3>\\n<ul>\\n{{#each $json.evidence.explanation}}\\n<li>{{this}}</li>\\n{{/each}}\\n</ul>\\n\\n<p><em>Generated by FraudShield Revolutionary</em></p>"
+      },
+      "name": "Email Alert",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1560, 460],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-creds",
+          "name": "SMTP Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "table": "fraud_analytics",
+        "columns": "request_id, risk_score, decision, processing_time, evidence, created_at",
+        "additionalFields": {
+          "queryParameters": [
+            {
+              "name": "request_id",
+              "value": "={{$json.requestId}}"
+            },
+            {
+              "name": "risk_score",
+              "value": "={{$json.riskScore}}"
+            },
+            {
+              "name": "decision",
+              "value": "={{$json.decision}}"
+            },
+            {
+              "name": "processing_time",
+              "value": "={{$json.processingTime}}"
+            },
+            {
+              "name": "evidence",
+              "value": "={{JSON.stringify($json.evidence)}}"
+            },
+            {
+              "name": "created_at",
+              "value": "={{new Date().toISOString()}}"
+            }
+          ]
+        }
+      },
+      "name": "Update Analytics",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1780, 380],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-creds",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.fraudshield.dev/ml/feedback",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "request_id",
+              "value": "={{$json.requestId}}"
+            },
+            {
+              "name": "prediction",
+              "value": "={{$json.riskScore}}"
+            },
+            {
+              "name": "decision",
+              "value": "={{$json.decision}}"
+            },
+            {
+              "name": "features",
+              "value": "={{JSON.stringify($json.evidence.edge)}}"
+            }
+          ]
+        }
+      },
+      "name": "ML Feedback Loop",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2000, 380]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.riskScore}}",
+              "operation": "largerEqual",
+              "value2": 90
+            }
+          ]
+        }
+      },
+      "name": "Check Critical Risk",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [2000, 500]
+    },
+    {
+      "parameters": {
+        "url": "https://api.fraudshield.dev/ml/retrain",
+        "options": {
+          "timeout": 30000
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "trigger",
+              "value": "critical_risk_detected"
+            },
+            {
+              "name": "priority",
+              "value": "high"
+            }
+          ]
+        }
+      },
+      "name": "Trigger Model Retraining",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2220, 580]
+    },
+    {
+      "parameters": {
+        "url": "https://api.fraudshield.community/threat-share",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "threat_type",
+              "value": "high_risk_transaction"
+            },
+            {
+              "name": "risk_score",
+              "value": "={{$json.riskScore}}"
+            },
+            {
+              "name": "anonymized_hash",
+              "value": "={{$crypto.createHash('sha256').update($json.requestId + Date.now()).digest('hex')}}"
+            },
+            {
+              "name": "evidence_summary",
+              "value": "={{JSON.stringify($json.evidence.explanation.slice(0, 3))}}"
+            }
+          ]
+        }
+      },
+      "name": "Share Threat Intelligence",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2220, 500]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Create comprehensive response\nconst result = items[0].json;\n\n// Determine response format based on original request\nconst response = {\n  success: true,\n  data: {\n    requestId: result.requestId,\n    status: result.status || (result.decision === 'APPROVE' ? 'approved' : result.decision === 'BLOCK' ? 'blocked' : 'review'),\n    riskScore: result.riskScore,\n    decision: result.decision,\n    confidence: result.confidence,\n    processingTime: result.processingTime,\n    explanation: result.evidence?.explanation || [],\n    timestamp: result.timestamp || new Date().toISOString()\n  },\n  metadata: {\n    version: '1.0.0',\n    engine: 'fraudshield-revolutionary',\n    edgeLocation: 'n8n-automation'\n  }\n};\n\n// Add webhook response headers\nconst headers = {\n  'Content-Type': 'application/json',\n  'X-RateLimit-Remaining': '999',\n  'X-Response-Time': `${result.processingTime}ms`,\n  'X-Request-ID': result.requestId\n};\n\nreturn [{\n  json: response,\n  headers: headers\n}];"
+      },
+      "name": "Format Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2220, 380]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{JSON.stringify($json)}}",
+        "responseHeaders": {
+          "entries": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Response-Time",
+              "value": "={{$json.data.processingTime}}ms"
+            },
+            {
+              "name": "X-Request-ID",
+              "value": "={{$json.data.requestId}}"
+            }
+          ]
+        }
+      },
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2440, 380]
+    }
+  ],
+  "connections": {
+    "Webhook - Fraud Detection Request": {
+      "main": [
+        [
+          {
+            "node": "Data Validation & Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Validation & Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Edge ML Fraud Detection",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Community Intelligence Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edge ML Fraud Detection": {
+      "main": [
+        [
+          {
+            "node": "Decision Fusion Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Community Intelligence Check": {
+      "main": [
+        [
+          {
+            "node": "Decision Fusion Engine",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Decision Fusion Engine": {
+      "main": [
+        [
+          {
+            "node": "Route Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Decision": {
+      "main": [
+        [
+          {
+            "node": "Auto Approve",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Review Queue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Auto Block",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto Approve": {
+      "main": [
+        [
+          {
+            "node": "Update Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Review Queue": {
+      "main": [
+        [
+          {
+            "node": "Add to Review Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Review Queue": {
+      "main": [
+        [
+          {
+            "node": "Update Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto Block": {
+      "main": [
+        [
+          {
+            "node": "Discord Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Analytics": {
+      "main": [
+        [
+          {
+            "node": "ML Feedback Loop",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Critical Risk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ML Feedback Loop": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Critical Risk": {
+      "main": [
+        [
+          {
+            "node": "Share Threat Intelligence",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Trigger Model Retraining",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "fraud-detection",
+      "name": "fraud-detection"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}

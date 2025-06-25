@@ -1,0 +1,584 @@
+{
+  "name": "FraudShield - ML Training Automation",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Daily Training Schedule",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "path": "ml-retrain-trigger",
+        "options": {}
+      },
+      "name": "Manual Retrain Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 480],
+      "webhookId": "ml-retrain-webhook"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Check if retraining is needed\nconst triggerType = items[0]?.json?.trigger || 'scheduled';\nconst priority = items[0]?.json?.priority || 'normal';\n\n// Get current time and check last training\nconst now = new Date();\nconst lastTraining = new Date(items[0]?.json?.lastTraining || now.getTime() - (24 * 60 * 60 * 1000));\nconst hoursSinceLastTraining = (now.getTime() - lastTraining.getTime()) / (1000 * 60 * 60);\n\n// Decide if retraining is needed\nlet shouldRetrain = false;\nlet reason = '';\n\nif (triggerType === 'scheduled' && hoursSinceLastTraining >= 24) {\n  shouldRetrain = true;\n  reason = 'Daily scheduled training';\n} else if (triggerType === 'critical_risk_detected' && hoursSinceLastTraining >= 1) {\n  shouldRetrain = true;\n  reason = 'Critical risk pattern detected';\n} else if (triggerType === 'manual' || priority === 'high') {\n  shouldRetrain = true;\n  reason = 'Manual trigger or high priority';\n} else if (triggerType === 'feedback_threshold' && hoursSinceLastTraining >= 6) {\n  shouldRetrain = true;\n  reason = 'Feedback threshold reached';\n}\n\nconst result = {\n  shouldRetrain,\n  reason,\n  triggerType,\n  priority,\n  timestamp: now.toISOString(),\n  hoursSinceLastTraining\n};\n\nconsole.log(`🤖 Training check: ${shouldRetrain ? 'RETRAIN' : 'SKIP'} - ${reason}`);\n\nreturn [{ json: result }];"
+      },
+      "name": "Training Decision Logic",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 390]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.shouldRetrain}}",
+              "operation": "equal",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Should Retrain?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [680, 390]
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": "fraud_analytics",
+        "filterType": "manual",
+        "conditions": {
+          "conditions": [
+            {
+              "column": "created_at",
+              "operator": "gte",
+              "value": "={{new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()}}"
+            }
+          ]
+        },
+        "sort": {
+          "rules": [
+            {
+              "column": "created_at",
+              "direction": "desc"
+            }
+          ]
+        },
+        "limit": 10000
+      },
+      "name": "Fetch Training Data",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [900, 390],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-creds",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": "feedback_data",
+        "filterType": "manual",
+        "conditions": {
+          "conditions": [
+            {
+              "column": "created_at",
+              "operator": "gte",
+              "value": "={{new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()}}"
+            },
+            {
+              "column": "is_verified",
+              "operator": "equal",
+              "value": true
+            }
+          ]
+        }
+      },
+      "name": "Fetch Feedback Data",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [900, 540]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Prepare training dataset\nconst analyticsData = items[0].json || [];\nconst feedbackData = items[1].json || [];\n\n// Combine and process data\nconst trainingSet = [];\nconst validationSet = [];\n\n// Process analytics data\nanalyticsData.forEach(record => {\n  if (record.evidence && record.decision) {\n    const features = [];\n    \n    // Extract features from evidence\n    try {\n      const evidence = typeof record.evidence === 'string' ? JSON.parse(record.evidence) : record.evidence;\n      \n      if (evidence.edge && Array.isArray(evidence.edge)) {\n        evidence.edge.forEach(feature => {\n          if (feature.value !== undefined) {\n            features.push(feature.value);\n          }\n        });\n      }\n    } catch (e) {\n      console.warn('Failed to parse evidence:', e);\n      return;\n    }\n    \n    // Ensure we have enough features\n    while (features.length < 20) {\n      features.push(0);\n    }\n    \n    // Create label (0 = legitimate, 1 = fraud)\n    let label = 0;\n    if (record.decision === 'BLOCK' || record.risk_score >= 70) {\n      label = 1;\n    }\n    \n    const sample = {\n      features: features.slice(0, 20),\n      label,\n      weight: 1.0,\n      source: 'analytics',\n      timestamp: record.created_at\n    };\n    \n    // 80/20 split for training/validation\n    if (Math.random() < 0.8) {\n      trainingSet.push(sample);\n    } else {\n      validationSet.push(sample);\n    }\n  }\n});\n\n// Process feedback data (higher weight)\nfeedbackData.forEach(feedback => {\n  if (feedback.features && feedback.actual_result) {\n    try {\n      const features = typeof feedback.features === 'string' ? JSON.parse(feedback.features) : feedback.features;\n      \n      const sample = {\n        features: Array.isArray(features) ? features.slice(0, 20) : [],\n        label: feedback.actual_result === 'fraud' ? 1 : 0,\n        weight: 2.0, // Higher weight for verified feedback\n        source: 'feedback',\n        timestamp: feedback.created_at\n      };\n      \n      // Ensure feature vector length\n      while (sample.features.length < 20) {\n        sample.features.push(0);\n      }\n      \n      trainingSet.push(sample);\n    } catch (e) {\n      console.warn('Failed to process feedback:', e);\n    }\n  }\n});\n\n// Calculate dataset statistics\nconst stats = {\n  totalSamples: trainingSet.length + validationSet.length,\n  trainingSamples: trainingSet.length,\n  validationSamples: validationSet.length,\n  fraudSamples: trainingSet.filter(s => s.label === 1).length + validationSet.filter(s => s.label === 1).length,\n  legitimateSamples: trainingSet.filter(s => s.label === 0).length + validationSet.filter(s => s.label === 0).length,\n  classBalance: {\n    fraud: ((trainingSet.filter(s => s.label === 1).length + validationSet.filter(s => s.label === 1).length) / (trainingSet.length + validationSet.length) * 100).toFixed(2) + '%',\n    legitimate: ((trainingSet.filter(s => s.label === 0).length + validationSet.filter(s => s.label === 0).length) / (trainingSet.length + validationSet.length) * 100).toFixed(2) + '%'\n  }\n};\n\nconsole.log('📊 Dataset prepared:', JSON.stringify(stats, null, 2));\n\n// Check if we have enough data\nif (trainingSet.length < 100) {\n  throw new Error(`Insufficient training data: ${trainingSet.length} samples (minimum: 100)`);\n}\n\nconst result = {\n  trainingSet,\n  validationSet,\n  stats,\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: result }];"
+      },
+      "name": "Prepare Training Dataset",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1120, 465]
+    },
+    {
+      "parameters": {
+        "url": "https://api.fraudshield.dev/ml/train",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 300000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.ML_API_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "training_data",
+              "value": "={{JSON.stringify($json.trainingSet)}}"
+            },
+            {
+              "name": "validation_data",
+              "value": "={{JSON.stringify($json.validationSet)}}"
+            },
+            {
+              "name": "model_config",
+              "value": "={{JSON.stringify({ epochs: 50, batch_size: 32, learning_rate: 0.001, architecture: 'deep_neural_network' })}}"
+            },
+            {
+              "name": "trigger_type",
+              "value": "={{$('Training Decision Logic').item.json.triggerType}}"
+            },
+            {
+              "name": "priority",
+              "value": "={{$('Training Decision Logic').item.json.priority}}"
+            }
+          ]
+        }
+      },
+      "name": "Execute ML Training",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1340, 465]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.training_results.accuracy}}",
+              "operation": "largerEqual",
+              "value2": 0.9
+            }
+          ]
+        }
+      },
+      "name": "Check Training Success",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [1560, 465]
+    },
+    {
+      "parameters": {
+        "url": "https://api.fraudshield.dev/ml/deploy",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model_id",
+              "value": "={{$json.model_id}}"
+            },
+            {
+              "name": "model_version",
+              "value": "={{$json.model_version}}"
+            },
+            {
+              "name": "deployment_target",
+              "value": "production"
+            },
+            {
+              "name": "rollout_strategy",
+              "value": "gradual"
+            },
+            {
+              "name": "rollout_percentage",
+              "value": 10
+            }
+          ]
+        }
+      },
+      "name": "Deploy New Model",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1780, 420]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Training failed - analyze and alert\nconst trainingResult = items[0].json;\n\nconst failureAnalysis = {\n  accuracy: trainingResult.training_results?.accuracy || 0,\n  loss: trainingResult.training_results?.loss || 'unknown',\n  reason: 'Low accuracy - model may be overfitting or data quality issues',\n  recommendations: [\n    'Review training data quality',\n    'Adjust hyperparameters',\n    'Increase training data size',\n    'Check for data leakage'\n  ],\n  timestamp: new Date().toISOString(),\n  severity: 'HIGH'\n};\n\nconsole.log('❌ Training failed:', JSON.stringify(failureAnalysis, null, 2));\n\nreturn [{ json: failureAnalysis }];"
+      },
+      "name": "Handle Training Failure",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1780, 520]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "table": "ml_training_history",
+        "columns": "trigger_type, dataset_stats, training_results, deployment_status, created_at",
+        "additionalFields": {
+          "queryParameters": [
+            {
+              "name": "trigger_type",
+              "value": "={{$('Training Decision Logic').item.json.triggerType}}"
+            },
+            {
+              "name": "dataset_stats",
+              "value": "={{JSON.stringify($('Prepare Training Dataset').item.json.stats)}}"
+            },
+            {
+              "name": "training_results",
+              "value": "={{JSON.stringify($json.training_results || {})}}"
+            },
+            {
+              "name": "deployment_status",
+              "value": "={{$json.deployment_status || 'failed'}}"
+            },
+            {
+              "name": "created_at",
+              "value": "={{new Date().toISOString()}}"
+            }
+          ]
+        }
+      },
+      "name": "Log Training History",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [2000, 465],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-creds",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "webhookUrl": "={{$env.DISCORD_WEBHOOK_URL}}",
+        "text": "🤖 **ML Model Training Complete**\\n\\n📊 **Results:**\\n• Accuracy: {{$('Execute ML Training').item.json.training_results.accuracy * 100}}%\\n• Loss: {{$('Execute ML Training').item.json.training_results.loss}}\\n• Model Version: {{$('Execute ML Training').item.json.model_version}}\\n\\n🚀 **Deployment:**\\n• Status: {{$json.deployment_status}}\\n• Target: Production ({{$json.rollout_percentage}}% rollout)\\n\\n📈 **Dataset:**\\n• Training Samples: {{$('Prepare Training Dataset').item.json.stats.trainingSamples}}\\n• Validation Samples: {{$('Prepare Training Dataset').item.json.stats.validationSamples}}\\n• Class Balance: {{$('Prepare Training Dataset').item.json.stats.classBalance.fraud}} fraud"
+      },
+      "name": "Success Notification",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 1,
+      "position": [2000, 390]
+    },
+    {
+      "parameters": {
+        "webhookUrl": "={{$env.DISCORD_WEBHOOK_URL}}",
+        "text": "⚠️ **ML Training Failed**\\n\\n❌ **Issue:**\\n• Accuracy: {{$('Execute ML Training').item.json.training_results.accuracy * 100}}% (threshold: 90%)\\n• Reason: {{$json.reason}}\\n\\n🔧 **Recommendations:**\\n{{#each $json.recommendations}}\\n• {{this}}\\n{{/each}}\\n\\n⏰ **Next Steps:**\\n• Review training data quality\\n• Manual intervention required"
+      },
+      "name": "Failure Notification",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 1,
+      "position": [2000, 540]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 */6 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Model Performance Check",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [240, 700]
+    },
+    {
+      "parameters": {
+        "url": "https://api.fraudshield.dev/ml/metrics",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "name": "Get Model Metrics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [460, 700]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.accuracy}}",
+              "operation": "smaller",
+              "value2": 0.85
+            }
+          ]
+        }
+      },
+      "name": "Check Model Degradation",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [680, 700]
+    },
+    {
+      "parameters": {
+        "url": "https://n8n.fraudshield.dev/webhook/ml-retrain-trigger",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "trigger",
+              "value": "model_degradation"
+            },
+            {
+              "name": "priority",
+              "value": "high"
+            },
+            {
+              "name": "current_accuracy",
+              "value": "={{$json.accuracy}}"
+            },
+            {
+              "name": "threshold",
+              "value": 0.85
+            }
+          ]
+        }
+      },
+      "name": "Trigger Emergency Retrain",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [900, 780]
+    },
+    {
+      "parameters": {
+        "webhookUrl": "={{$env.DISCORD_WEBHOOK_URL}}",
+        "text": "🚨 **Model Performance Degradation Detected**\\n\\n📉 **Current Metrics:**\\n• Accuracy: {{$json.accuracy * 100}}%\\n• Threshold: 85%\\n• Degradation: {{(0.85 - $json.accuracy) * 100}}%\\n\\n🔄 **Action Taken:**\\n• Emergency retraining triggered\\n• High priority queue\\n• Automatic deployment on success\\n\\n⏰ **Expected completion:** 30-60 minutes"
+      },
+      "name": "Degradation Alert",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 1,
+      "position": [900, 700]
+    }
+  ],
+  "connections": {
+    "Daily Training Schedule": {
+      "main": [
+        [
+          {
+            "node": "Training Decision Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Retrain Webhook": {
+      "main": [
+        [
+          {
+            "node": "Training Decision Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Training Decision Logic": {
+      "main": [
+        [
+          {
+            "node": "Should Retrain?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Retrain?": {
+      "main": [
+        [
+          {
+            "node": "Fetch Training Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Feedback Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Training Data": {
+      "main": [
+        [
+          {
+            "node": "Prepare Training Dataset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Feedback Data": {
+      "main": [
+        [
+          {
+            "node": "Prepare Training Dataset",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Prepare Training Dataset": {
+      "main": [
+        [
+          {
+            "node": "Execute ML Training",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute ML Training": {
+      "main": [
+        [
+          {
+            "node": "Check Training Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Training Success": {
+      "main": [
+        [
+          {
+            "node": "Deploy New Model",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Training Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deploy New Model": {
+      "main": [
+        [
+          {
+            "node": "Log Training History",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Success Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Training Failure": {
+      "main": [
+        [
+          {
+            "node": "Log Training History",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Failure Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Model Performance Check": {
+      "main": [
+        [
+          {
+            "node": "Get Model Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Model Metrics": {
+      "main": [
+        [
+          {
+            "node": "Check Model Degradation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Model Degradation": {
+      "main": [
+        [
+          {
+            "node": "Trigger Emergency Retrain",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Degradation Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "ml-training",
+      "name": "ml-training"
+    }
+  ],
+  "triggerCount": 2,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}

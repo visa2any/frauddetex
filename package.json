@@ -1,0 +1,79 @@
+{
+  "name": "fraudshield-revolutionary",
+  "version": "1.0.0",
+  "description": "O primeiro sistema anti-fraude explicável, colaborativo e edge-native do mundo",
+  "main": "index.js",
+  "scripts": {
+    "setup:all": "npm run setup:deps && npm run setup:db && npm run setup:n8n",
+    "setup:deps": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "setup:db": "docker-compose up -d postgres redis",
+    "setup:n8n": "docker-compose up -d n8n",
+    "dev": "docker-compose up",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && deno run --allow-all main.ts",
+    "build": "npm run build:frontend && npm run build:backend && npm run build:edge",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && deno compile --allow-all main.ts",
+    "build:edge": "cd edge-ml && wasm-pack build --target web",
+    "test": "npm run test:frontend && npm run test:backend && npm run test:edge",
+    "test:frontend": "cd frontend && npm run test",
+    "test:backend": "cd backend && deno test --allow-all",
+    "test:edge": "cd edge-ml && cargo test",
+    "test:e2e": "playwright test",
+    "deploy:production": "npm run deploy:cloudflare && npm run deploy:vercel && npm run deploy:deno",
+    "deploy:cloudflare": "cd edge-ml && wrangler deploy",
+    "deploy:vercel": "cd frontend && vercel --prod",
+    "deploy:deno": "cd backend && deno deploy --project=fraudshield-api main.ts",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "format": "prettier --write .",
+    "monitor": "docker-compose up grafana",
+    "backup": "pg_dump $DATABASE_URL > backup-$(date +%Y%m%d).sql"
+  },
+  "keywords": [
+    "fraud-detection",
+    "edge-computing",
+    "behavioral-biometrics",
+    "explainable-ai",
+    "community-intelligence",
+    "machine-learning",
+    "graph-neural-networks",
+    "automation",
+    "n8n"
+  ],
+  "author": "FraudShield Revolutionary Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fraudshield/revolutionary.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fraudshield/revolutionary/issues"
+  },
+  "homepage": "https://fraudshield.revolutionary",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.19.1",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8.0.0",
+    "postcss": "^8.5.6",
+    "prettier": "^3.0.0",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "docker-compose": "^0.24.0",
+    "framer-motion": "^10.16.16",
+    "lucide-react": "^0.303.0",
+    "next": "^14.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

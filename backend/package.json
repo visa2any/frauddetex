@@ -1,0 +1,29 @@
+{
+  "name": "frauddetex-backend",
+  "version": "1.0.0",
+  "description": "FraudDetex Backend API",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "setup": "node setup.js",
+    "dev": "node --watch main.js",
+    "start": "node main.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@oak/oak": "^12.6.1",
+    "postgres": "^3.4.3",
+    "redis": "^4.6.5",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

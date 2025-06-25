@@ -1,0 +1,58 @@
+# Robots.txt - FraudShield Revolutionary
+# Permitindo indexação completa para melhor SEO
+
+User-agent: *
+Allow: /
+
+# Páginas importantes para SEO
+Allow: /pricing
+Allow: /docs
+Allow: /features
+Allow: /about
+Allow: /blog
+Allow: /community
+
+# Bloqueando páginas administrativas e privadas
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /temp/
+Disallow: /private/
+Disallow: /billing/
+Disallow: /onboarding/
+
+# Permitindo crawlers específicos importantes
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# Localização do Sitemap
+Sitemap: https://fraudshield.com/sitemap.xml
+Sitemap: https://fraudshield.com/sitemap-pages.xml
+Sitemap: https://fraudshield.com/sitemap-blog.xml
+
+# Crawl delay para bots menos importantes
+User-agent: *
+Crawl-delay: 1
+
+# Bloqueando bots maliciosos conhecidos
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+# Host preferido (evita conteúdo duplicado)
+Host: https://fraudshield.com

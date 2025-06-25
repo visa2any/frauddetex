@@ -1,0 +1,99 @@
+{
+  "name": "FraudShield Revolutionary",
+  "short_name": "FraudShield",
+  "description": "O primeiro sistema de proteção anti-fraude com IA explicável do mundo",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#EF4444",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["security", "business", "productivity"],
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "FraudShield Dashboard"
+    },
+    {
+      "src": "/screenshot-mobile.png", 
+      "sizes": "750x1334",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "FraudShield Mobile"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Acesse o dashboard principal",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/icons/dashboard-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Preços",
+      "short_name": "Pricing",
+      "description": "Veja nossos planos e preços",
+      "url": "/pricing",
+      "icons": [
+        {
+          "src": "/icons/pricing-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Docs",
+      "short_name": "Docs",
+      "description": "Documentação técnica",
+      "url": "/docs",
+      "icons": [
+        {
+          "src": "/icons/docs-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

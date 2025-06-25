@@ -1,0 +1,92 @@
+# 🌐 FraudDetex - Cloudflare Worker Configuration
+# 
+# Configuração para deploy do edge computing worker
+# Features:
+# - Multi-region deployment
+# - KV storage para cache distribuído
+# - Rate limiting e security headers
+# - Environment variables management
+
+name = "frauddetex-edge"
+main = "cloudflare-edge.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Worker configuration
+workers_dev = true
+route = { pattern = "*.frauddetex.com/edge/*", zone_name = "frauddetex.com" }
+
+# Resource limits
+usage_model = "bundled"
+cpu_ms = 100
+memory_mb = 128
+
+# KV Namespaces para cache distribuído
+[[kv_namespaces]]
+binding = "FRAUD_CACHE"
+id = "fraud-cache-namespace"
+preview_id = "fraud-cache-preview"
+
+[[kv_namespaces]]
+binding = "MODEL_CACHE"
+id = "model-cache-namespace"
+preview_id = "model-cache-preview"
+
+# Environment variables
+[env.production.vars]
+ENVIRONMENT = "production"
+BACKEND_URL = "https://api.frauddetex.com"
+MODEL_VERSION = "v2.1.0"
+CACHE_TTL = "300"
+MAX_REQUESTS_PER_MINUTE = "10000"
+SYNC_ENABLED = "true"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+BACKEND_URL = "https://staging-api.frauddetex.com"
+MODEL_VERSION = "v2.0.0"
+CACHE_TTL = "180"
+MAX_REQUESTS_PER_MINUTE = "5000"
+SYNC_ENABLED = "true"
+
+[env.development.vars]
+ENVIRONMENT = "development"
+BACKEND_URL = "http://localhost:8000"
+MODEL_VERSION = "v1.0.0-dev"
+CACHE_TTL = "60"
+MAX_REQUESTS_PER_MINUTE = "1000"
+SYNC_ENABLED = "false"
+
+# Triggers para deploy automático
+[[triggers]]
+crons = ["0 */6 * * *"]  # A cada 6 horas para sync de modelos
+
+# Observability
+[observability]
+enabled = true
+
+# Security headers
+[env.production.vars.SECURITY_HEADERS]
+ENABLE_CORS = "true"
+ALLOWED_ORIGINS = "https://app.frauddetex.com,https://dashboard.frauddetex.com"
+RATE_LIMIT_ENABLED = "true"
+CSRF_PROTECTION = "true"
+
+# Multi-region deployment
+[placement]
+mode = "smart"
+
+# Durable Objects (para state management se necessário)
+# [[durable_objects.bindings]]
+# name = "FRAUD_STATE"
+# class_name = "FraudState"
+# script_name = "frauddetex-edge"
+
+# Analytics Engine binding (para métricas)
+[[analytics_engine_datasets]]
+binding = "FRAUD_ANALYTICS"
+
+# Secrets (configurados via wrangler CLI)
+# wrangler secret put API_SECRET_KEY
+# wrangler secret put EDGE_SYNC_TOKEN
+# wrangler secret put ML_MODEL_KEY

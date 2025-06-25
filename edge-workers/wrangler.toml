@@ -1,0 +1,118 @@
+# 🌐 FraudShield Revolutionary - Cloudflare Worker Configuration
+#
+# Wrangler configuration for edge fraud detection deployment
+
+name = "fraudshield-edge"
+compatibility_date = "2024-01-15"
+main = "fraud-detection-worker.js"
+
+# Worker configuration
+workers_dev = true
+route = { pattern = "fraud-detection.fraudshield.workers.dev/*", zone_name = "fraudshield.workers.dev" }
+
+# Environment variables
+[env.production]
+name = "fraudshield-edge-prod"
+route = { pattern = "edge.fraudshield.revolutionary/*", zone_name = "fraudshield.revolutionary" }
+
+[env.staging]
+name = "fraudshield-edge-staging"
+route = { pattern = "edge-staging.fraudshield.revolutionary/*", zone_name = "fraudshield.revolutionary" }
+
+# KV Namespaces for caching
+[[kv_namespaces]]
+binding = "FRAUD_CACHE"
+preview_id = "fraudshield-cache-preview"
+id = "fraudshield-cache-prod"
+
+[[kv_namespaces]]
+binding = "IP_REPUTATION"
+preview_id = "ip-reputation-preview"
+id = "ip-reputation-prod"
+
+[[kv_namespaces]]
+binding = "BEHAVIORAL_PATTERNS"
+preview_id = "behavioral-patterns-preview"
+id = "behavioral-patterns-prod"
+
+# Durable Objects for stateful processing
+[[durable_objects.bindings]]
+name = "FRAUD_ANALYZER"
+class_name = "FraudAnalyzer"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["FraudAnalyzer"]
+
+# WebAssembly modules
+[[wasm_modules]]
+binding = "FRAUD_MODEL"
+source = "./fraud-model.wasm"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+MODEL_VERSION = "1.0.0"
+MAX_PROCESSING_TIME_MS = "45"
+ENABLE_CACHING = "true"
+LOG_LEVEL = "info"
+
+# Secrets (set via wrangler secret put)
+# BACKEND_API_URL - Backend API endpoint
+# API_SECRET_KEY - Secret for backend communication
+# THREAT_INTEL_API_KEY - Threat intelligence API key
+
+# Resource limits
+[limits]
+cpu_ms = 50     # Maximum 50ms CPU time
+memory_mb = 128 # Maximum 128MB memory
+
+# Cron triggers for cache cleanup
+[[triggers.crons]]
+cron = "0 */6 * * *"  # Every 6 hours
+route = "/edge/cleanup"
+
+# Custom domains
+[env.production.route]
+pattern = "edge.fraudshield.revolutionary/*"
+custom_domain = true
+
+# Analytics
+[analytics_engine_datasets]
+[[analytics_engine_datasets.bindings]]
+name = "FRAUD_ANALYTICS"
+dataset = "fraudshield_edge_analytics"
+
+# Placement
+[placement]
+mode = "smart"  # Automatic placement optimization
+
+# Build configuration
+[build]
+command = "npm run build"
+cwd = "./edge-workers"
+watch_dir = "./edge-workers"
+
+[build.upload]
+format = "modules"
+dir = "./dist"
+main = "./fraud-detection-worker.js"
+
+# Development configuration
+[dev]
+ip = "localhost"
+port = 8787
+local_protocol = "http"
+upstream_protocol = "https"
+
+# Compatibility flags
+compatibility_flags = [
+  "streams_enable_constructors",
+  "transformstream_enable_standard_constructor"
+]
+
+# Minification
+minify = true
+
+# Source maps
+source_map = true
