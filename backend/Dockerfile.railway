@@ -1,31 +1,18 @@
 # 🛡️ FraudDetex - Railway Deployment
-# Otimizado para Railway Pro ($5/mês)
+# Dockerfile simplificado para Railway
 
 FROM denoland/deno:latest
 
-# Instalar dependências do sistema
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar arquivos de configuração do Deno
-COPY backend/deno.json ./
-COPY backend/deno.lock ./
-
-# Cache das dependências (sem lock file por compatibilidade)
-RUN deno cache deno.json
-
-# Copiar código fonte
+# Copiar todos os arquivos do backend
 COPY backend/ ./
 
-# Cache das dependências do projeto
+# Cache das dependências
 RUN deno cache main.ts
 
-# Expor porta (Railway usa PORT env var)
-EXPOSE $PORT
+# Expor porta
+EXPOSE 8000
 
 # Comando de inicialização
 CMD ["deno", "run", "--allow-all", "main.ts"]
