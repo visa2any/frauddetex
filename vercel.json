@@ -11,13 +11,6 @@
       "use": "@vercel/next"
     }
   ],
-  "env": {
-    "NEXT_PUBLIC_API_URL": "https://frauddetex-production.up.railway.app",
-    "NEXT_PUBLIC_NEON_URL": "@neon_url",
-    "NEXT_PUBLIC_NEON_ANON_KEY": "@neon_anon_key",
-    "NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY": "@mercadopago_public_key",
-    "NEXT_PUBLIC_EMAIL_FROM": "info@frauddetex.com"
-  },
   "headers": [
     {
       "source": "/api/(.*)",
