@@ -9,9 +9,6 @@
   ],
   "env": {
     "NEXT_PUBLIC_API_URL": "https://frauddetex-production.up.railway.app",
-    "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
-    "NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY": "@mercadopago_public_key",
     "NEXT_PUBLIC_EMAIL_FROM": "info@frauddetex.com"
   },
   "headers": [
