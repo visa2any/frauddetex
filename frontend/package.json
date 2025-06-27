@@ -5,7 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "validate:precise": "next lint --fix",
+    "fix:precise": "next lint --fix",
+    "type-check:ultra": "tsc --noEmit",
+    "sweep:validate": "npm run validate:precise && npm run type-check:ultra"
   },
   "dependencies": {
     "@radix-ui/react-progress": "^1.1.7",
