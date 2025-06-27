@@ -139,11 +139,16 @@ export default function PricingPage() {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [monthlyTransactions, setMonthlyTransactions] = useState(50000);
 
-  const calculateCost = (transactions: number) => {
+  const calculateCost = (transactions: number): number | string => {
     if (transactions <= 10000) return 0;
-    if (transactions <= 100000) return 199 + (transactions - 100000) * 0.05;
-    if (transactions <= 1000000) return 799 + (transactions - 1000000) * 0.03;
+    if (transactions <= 100000) return 199 + Math.max(0, (transactions - 100000)) * 0.05;
+    if (transactions <= 1000000) return 799 + Math.max(0, (transactions - 1000000)) * 0.03;
     return 'Consultar';
+  };
+
+  const calculateCostNumeric = (transactions: number): number => {
+    const cost = calculateCost(transactions);
+    return typeof cost === 'number' ? cost : 0;
   };
 
   const calculateSavings = (transactions: number) => {
@@ -248,7 +253,7 @@ export default function PricingPage() {
                     <div className="text-sm text-slate-400 mb-1">Custo Mensal</div>
                     <div className="text-2xl font-bold text-white">
                       {typeof calculateCost(monthlyTransactions) === 'number' 
-                        ? `R$ ${calculateCost(monthlyTransactions).toLocaleString()}`
+                        ? `R$ ${(calculateCost(monthlyTransactions) as number).toLocaleString()}`
                         : calculateCost(monthlyTransactions)
                       }
                     </div>
@@ -264,7 +269,7 @@ export default function PricingPage() {
                 <div className="text-center">
                   <div className="text-sm text-slate-400 mb-2">ROI Projetado</div>
                   <div className="text-4xl font-bold text-purple-400">
-                    {Math.round((calculateSavings(monthlyTransactions) / (typeof calculateCost(monthlyTransactions) === 'number' ? calculateCost(monthlyTransactions) : 1)) * 100)}%
+                    {Math.round((calculateSavings(monthlyTransactions) / Math.max(1, calculateCostNumeric(monthlyTransactions))) * 100)}%
                   </div>
                 </div>
               </div>
