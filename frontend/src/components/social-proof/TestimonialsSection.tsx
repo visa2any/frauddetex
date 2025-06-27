@@ -231,7 +231,7 @@ export default function TestimonialsSection({
                     </div>
                   </div>
                   
-                  <p className="text-slate-300 mb-4 italic text-sm">"{testimonial.content}"</p>
+                  <p className="text-slate-300 mb-4 italic text-sm">&quot;{testimonial.content}&quot;</p>
                   
                   <div className="flex flex-wrap gap-2 mb-3">
                     {Object.entries(testimonial.metrics).map(([key, value]) => (

@@ -25,7 +25,7 @@ export default function VerifyEmailPage() {
       setStatus('resend');
       setMessage('Verifique seu email para completar o cadastro.');
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   const verifyEmail = async (token: string) => {
     try {
@@ -217,7 +217,7 @@ export default function VerifyEmailPage() {
                   <ul className="text-sm text-gray-600 space-y-1">
                     <li>• Verifique sua pasta de spam</li>
                     <li>• Aguarde alguns minutos</li>
-                    <li>• Clique em "Reenviar Email" abaixo</li>
+                    <li>• Clique em &quot;Reenviar Email&quot; abaixo</li>
                   </ul>
                 </div>
 

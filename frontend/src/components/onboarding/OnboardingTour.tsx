@@ -88,14 +88,14 @@ export default function OnboardingTour({ onComplete, onSkip }: OnboardingTourPro
           <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm">
             <div className="mb-2 text-gray-400"># Exemplo de requisição:</div>
             <div>curl -X POST http://localhost:8000/api/v1/fraud/detect \</div>
-            <div>  -H "X-API-Key: fs_demo_key_123456789abcdef" \</div>
-            <div>  -H "Content-Type: application/json" \</div>
-            <div>  -d '{`{`}</div>
-            <div>    "transaction_id": "test_123",</div>
-            <div>    "amount": 500,</div>
-            <div>    "user_id": "demo_user",</div>
-            <div>    "payment_method": "card"</div>
-            <div>  {`}`}'</div>
+            <div>  -H &quot;X-API-Key: fs_demo_key_123456789abcdef&quot; \</div>
+            <div>  -H &quot;Content-Type: application/json&quot; \</div>
+            <div>  -d &apos;{`{`}</div>
+            <div>    &quot;transaction_id&quot;: &quot;test_123&quot;,</div>
+            <div>    &quot;amount&quot;: 500,</div>
+            <div>    &quot;user_id&quot;: &quot;demo_user&quot;,</div>
+            <div>    &quot;payment_method&quot;: &quot;card&quot;</div>
+            <div>  {`}`}&apos;</div>
           </div>
           <Button className="w-full" onClick={() => setCompletedSteps(prev => [...prev, 'first-request'])}>
             🧪 Testar API

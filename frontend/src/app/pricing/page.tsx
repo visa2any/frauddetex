@@ -355,7 +355,7 @@ export default function PricingPage() {
                     </div>
                   </div>
                   
-                  <p className="text-slate-300 mb-4 italic">"{testimonial.content}"</p>
+                  <p className="text-slate-300 mb-4 italic">&quot;{testimonial.content}&quot;</p>
                   
                   <Badge className="bg-green-500/20 text-green-400 border-green-500/20">
                     {testimonial.metrics}
@@ -409,20 +409,20 @@ export default function PricingPage() {
           <div className="max-w-3xl mx-auto space-y-4">
             {[
               {
-                q: "Como funciona a garantia de reembolso?",
-                a: "Se não detectarmos pelo menos 80% das fraudes em 30 dias, devolvemos 100% do valor pago."
+                q: &quot;Como funciona a garantia de reembolso?&quot;,
+                a: &quot;Se não detectarmos pelo menos 80% das fraudes em 30 dias, devolvemos 100% do valor pago.&quot;
               },
               {
-                q: "Quanto tempo leva para implementar?",
-                a: "Implementação completa em menos de 24 horas. API REST simples, SDKs prontos para principais linguagens."
+                q: &quot;Quanto tempo leva para implementar?&quot;,
+                a: &quot;Implementação completa em menos de 24 horas. API REST simples, SDKs prontos para principais linguagens.&quot;
               },
               {
-                q: "É compatível com meu sistema atual?",
-                a: "Sim! Funciona com qualquer sistema via API REST. Integrações nativas para Shopify, WooCommerce, e principais gateways."
+                q: &quot;É compatível com meu sistema atual?&quot;,
+                a: &quot;Sim! Funciona com qualquer sistema via API REST. Integrações nativas para Shopify, WooCommerce, e principais gateways.&quot;
               },
               {
-                q: "O que acontece se eu ultrapassar o limite?",
-                a: "Cobramos apenas o excedente. Sem surpresas, sem bloqueios. Você continua protegido."
+                q: &quot;O que acontece se eu ultrapassar o limite?&quot;,
+                a: &quot;Cobramos apenas o excedente. Sem surpresas, sem bloqueios. Você continua protegido.&quot;
               }
             ].map((faq, index) => (
               <Card key={index} className="bg-slate-800/50 border-slate-700">
