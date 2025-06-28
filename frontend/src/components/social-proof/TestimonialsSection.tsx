@@ -299,7 +299,7 @@ export default function TestimonialsSection({
                   </div>
                 </div>
                 
-                <p className="text-slate-300 mb-4 italic text-sm">"{testimonial.content}"</p>
+                <p className="text-slate-300 mb-4 italic text-sm">&quot;{testimonial.content}&quot;</p>
                 
                 <Badge className="bg-green-500/20 text-green-400 border-green-500/20">
                   {Object.values(testimonial.metrics)[0]}

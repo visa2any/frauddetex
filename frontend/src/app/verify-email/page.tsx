@@ -25,7 +25,7 @@ export default function VerifyEmailPage() {
       setStatus('resend');
       setMessage('Verifique seu email para completar o cadastro.');
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, verifyEmail]);
 
   const verifyEmail = async (token: string) => {
     try {

@@ -355,7 +355,7 @@ export default function PricingPage() {
                     </div>
                   </div>
                   
-                  <p className="text-slate-300 mb-4 italic">"{testimonial.content}"</p>
+                  <p className="text-slate-300 mb-4 italic">&quot;{testimonial.content}&quot;</p>
                   
                   <Badge className="bg-green-500/20 text-green-400 border-green-500/20">
                     {testimonial.metrics}
