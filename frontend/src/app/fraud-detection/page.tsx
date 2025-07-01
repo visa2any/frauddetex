@@ -240,29 +240,29 @@ export default function FraudDetectionPage() {
           </CardHeader>
           <CardContent>
             <div className="bg-gray-900 rounded-lg p-6 text-white font-mono text-sm overflow-x-auto mb-6">
-              <div className="text-green-400 mb-2">// Exemplo de integração - JavaScript</div>
+              <div className="text-green-400 mb-2">{/* Exemplo de integração - JavaScript */}</div>
               <div className="mb-2">
-                <span className="text-blue-300">const</span> <span className="text-yellow-300">fraudDetex</span> = <span className="text-blue-300">require</span>(<span className="text-green-300">'@frauddetex/js'</span>);
+                <span className="text-blue-300">const</span> <span className="text-yellow-300">fraudDetex</span> = <span className="text-blue-300">require</span>(<span className="text-green-300">&apos;@frauddetex/js&apos;</span>);
               </div>
               <div className="mb-4">
-                <span className="text-blue-300">const</span> <span className="text-yellow-300">client</span> = <span className="text-blue-300">new</span> <span className="text-yellow-300">FraudDetex</span>(<span className="text-green-300">'YOUR_API_KEY'</span>);
+                <span className="text-blue-300">const</span> <span className="text-yellow-300">client</span> = <span className="text-blue-300">new</span> <span className="text-yellow-300">FraudDetex</span>(<span className="text-green-300">&apos;YOUR_API_KEY&apos;</span>);
               </div>
               <div className="mb-2">
                 <span className="text-blue-300">const</span> <span className="text-yellow-300">result</span> = <span className="text-blue-300">await</span> <span className="text-yellow-300">client</span>.<span className="text-blue-300">analyze</span>({'{'}
               </div>
               <div className="ml-4 mb-1">
-                <span className="text-yellow-300">transactionId</span>: <span className="text-green-300">'tx_123'</span>,
+                <span className="text-yellow-300">transactionId</span>: <span className="text-green-300">&apos;tx_123&apos;</span>,
               </div>
               <div className="ml-4 mb-1">
                 <span className="text-yellow-300">amount</span>: <span className="text-orange-300">299.99</span>,
               </div>
               <div className="ml-4 mb-1">
-                <span className="text-yellow-300">currency</span>: <span className="text-green-300">'BRL'</span>
+                <span className="text-yellow-300">currency</span>: <span className="text-green-300">&apos;BRL&apos;</span>
               </div>
               <div className="mb-4">{'});'}</div>
               <div className="text-green-400">
-                // result.fraudScore: 0-100<br/>
-                // result.decision: 'approve' | 'reject' | 'review'
+                {/* result.fraudScore: 0-100 */}<br/>
+                {/* result.decision: &apos;approve&apos; | &apos;reject&apos; | &apos;review&apos; */}
               </div>
             </div>
             <div className="text-center">

@@ -98,7 +98,7 @@ export default function APIPage() {
           <CardContent>
             <div className="bg-gray-900 rounded-lg p-4 text-white font-mono text-sm mb-4">
               <div className="text-green-400 mb-2"># Obtenha sua API Key no dashboard</div>
-              <div>curl -H "Authorization: Bearer YOUR_API_KEY" \</div>
+              <div>curl -H &quot;Authorization: Bearer YOUR_API_KEY&quot; \</div>
               <div className="ml-4">https://api.frauddetex.com/v1/fraud/analyze</div>
             </div>
             <p className="text-gray-600">
@@ -181,32 +181,32 @@ export default function APIPage() {
           </CardHeader>
           <CardContent>
             <div className="bg-gray-900 rounded-lg p-6 text-white font-mono text-sm overflow-x-auto">
-              <div className="text-green-400 mb-2">// JavaScript/Node.js</div>
+              <div className="text-green-400 mb-2">{/* JavaScript/Node.js */}</div>
               <div className="mb-4">
-                <span className="text-blue-300">const</span> <span className="text-yellow-300">fraudDetex</span> = <span className="text-blue-300">require</span>(<span className="text-green-300">'@frauddetex/js'</span>);
+                <span className="text-blue-300">const</span> <span className="text-yellow-300">fraudDetex</span> = <span className="text-blue-300">require</span>(<span className="text-green-300">&apos;@frauddetex/js&apos;</span>);
               </div>
               <div className="mb-4">
-                <span className="text-blue-300">const</span> <span className="text-yellow-300">client</span> = <span className="text-blue-300">new</span> <span className="text-yellow-300">fraudDetex</span>.<span className="text-blue-300">Client</span>(<span className="text-green-300">'YOUR_API_KEY'</span>);
+                <span className="text-blue-300">const</span> <span className="text-yellow-300">client</span> = <span className="text-blue-300">new</span> <span className="text-yellow-300">fraudDetex</span>.<span className="text-blue-300">Client</span>(<span className="text-green-300">&apos;YOUR_API_KEY&apos;</span>);
               </div>
               <div className="mb-4">
                 <span className="text-blue-300">const</span> <span className="text-yellow-300">result</span> = <span className="text-blue-300">await</span> <span className="text-yellow-300">client</span>.<span className="text-blue-300">analyzeFraud</span>({'{'}
               </div>
               <div className="ml-4 mb-2">
-                <span className="text-yellow-300">transactionId</span>: <span className="text-green-300">'tx_123'</span>,
+                <span className="text-yellow-300">transactionId</span>: <span className="text-green-300">&apos;tx_123&apos;</span>,
               </div>
               <div className="ml-4 mb-2">
                 <span className="text-yellow-300">amount</span>: <span className="text-orange-300">299.99</span>,
               </div>
               <div className="ml-4 mb-2">
-                <span className="text-yellow-300">currency</span>: <span className="text-green-300">'BRL'</span>,
+                <span className="text-yellow-300">currency</span>: <span className="text-green-300">&apos;BRL&apos;</span>,
               </div>
               <div className="ml-4 mb-2">
-                <span className="text-yellow-300">paymentMethod</span>: <span className="text-green-300">'credit_card'</span>
+                <span className="text-yellow-300">paymentMethod</span>: <span className="text-green-300">&apos;credit_card&apos;</span>
               </div>
               <div className="mb-4">{'});'}</div>
               <div className="text-green-400">
-                // result.fraudScore: 0-100<br/>
-                // result.decision: 'approve' | 'reject' | 'review'
+                {/* result.fraudScore: 0-100 */}<br/>
+                {/* result.decision: &apos;approve&apos; | &apos;reject&apos; | &apos;review&apos; */}
               </div>
             </div>
           </CardContent>

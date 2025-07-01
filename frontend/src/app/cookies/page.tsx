@@ -265,10 +265,10 @@ export default function CookiesPage() {
                   Você pode controlar cookies através das configurações do seu navegador:
                 </p>
                 <ul className="text-sm text-gray-600 space-y-2">
-                  <li>• <strong>Chrome:</strong> Configurações > Privacidade e segurança > Cookies</li>
-                  <li>• <strong>Firefox:</strong> Configurações > Privacidade e segurança</li>
-                  <li>• <strong>Safari:</strong> Preferências > Privacidade</li>
-                  <li>• <strong>Edge:</strong> Configurações > Cookies e permissões do site</li>
+                  <li>• <strong>Chrome:</strong> Configurações &gt; Privacidade e segurança &gt; Cookies</li>
+                  <li>• <strong>Firefox:</strong> Configurações &gt; Privacidade e segurança</li>
+                  <li>• <strong>Safari:</strong> Preferências &gt; Privacidade</li>
+                  <li>• <strong>Edge:</strong> Configurações &gt; Cookies e permissões do site</li>
                 </ul>
               </div>
 
