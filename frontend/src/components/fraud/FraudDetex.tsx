@@ -67,9 +67,9 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
       biometricsRef.current.startCapture();
       
       // Collect behavioral data for 3 seconds
-      setTimeout(() => {
+      setTimeout(async () => {
         if (biometricsRef.current) {
-          const data = biometricsRef.current.getBehavioralProfile();
+          const data = await biometricsRef.current.analyzePatterns();
           setBehavioralData(data);
         }
       }, 3000);
@@ -116,7 +116,7 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
       setCurrentStep(1);
       let behavioralProfile = behavioralData;
       if (!behavioralProfile && biometricsRef.current) {
-        behavioralProfile = biometricsRef.current.getBehavioralProfile();
+        behavioralProfile = await biometricsRef.current.analyzePatterns();
       }
       await sleep(analysisSteps[1].duration);
       setProgress(40);
