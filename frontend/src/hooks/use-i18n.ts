@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { locales, defaultLocale, getLocaleFromPath, getLocalizedPath, type Locale } from '@/lib/i18n';
+import { locales, defaultLocale, getLocaleFromPath, getLocalizedPath, type Locale } from '@/lib/i18n-simple';
 
 export function useI18n() {
   const pathname = usePathname();

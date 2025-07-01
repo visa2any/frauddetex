@@ -178,7 +178,7 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
     } finally {
       setIsAnalyzing(false);
     }
-  }, [behavioralData, onResult]);
+  }, [analysisSteps, behavioralData, checkCommunityThreats, onResult]);
 
   useEffect(() => {
     // Initialize services
@@ -259,7 +259,7 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
     };
   };
 
-  const checkCommunityThreats = async (transaction: TransactionData): Promise<number> => {
+  const checkCommunityThreats = useCallback(async (transaction: TransactionData): Promise<number> => {
     // Simulate community intelligence check
     await sleep(300);
     
@@ -271,7 +271,7 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
     ];
     
     return Math.min(factors.reduce((a, b) => a + b, 0), 1.0);
-  };
+  }, []);
 
   const generateFinalResult = (
     transaction: TransactionData,
