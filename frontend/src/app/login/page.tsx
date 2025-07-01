@@ -1,57 +1,54 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: 'demo@frauddetex.com',
+    password: 'demo123',
+    rememberMe: false
   });
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { login, isLoading, isAuthenticated } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const redirect = searchParams.get('redirect') || '/dashboard';
+      router.push(redirect);
+    }
+  }, [isAuthenticated, router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
 
-    try {
-      const response = await fetch('http://localhost:8000/api/v1/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+    const result = await login({
+      email: formData.email,
+      password: formData.password,
+      rememberMe: formData.rememberMe
+    });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Erro ao fazer login');
-      }
-
-      // Store token and user data
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      // Redirect to dashboard
-      router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
+    if (result.success) {
+      const redirect = searchParams.get('redirect') || '/dashboard';
+      router.push(redirect);
+    } else {
+      setError(result.error || 'Erro ao fazer login');
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -63,8 +60,8 @@ export default function LoginPage() {
           <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
             <span className="text-white text-2xl font-bold">🛡️</span>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">FraudShield</h1>
-          <p className="text-blue-200">Revolutionary</p>
+          <h1 className="text-3xl font-bold text-white mb-2">FraudDetex</h1>
+          <p className="text-blue-200">Fraud Detection System</p>
         </div>
 
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur">
@@ -119,7 +116,13 @@ export default function LoginPage() {
 
               <div className="flex items-center justify-between">
                 <label className="flex items-center">
-                  <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                  <input 
+                    type="checkbox" 
+                    name="rememberMe"
+                    checked={formData.rememberMe}
+                    onChange={handleChange}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                  />
                   <span className="ml-2 text-sm text-gray-600">Lembrar de mim</span>
                 </label>
                 <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-500">
@@ -169,9 +172,10 @@ export default function LoginPage() {
         <div className="mt-6 p-4 bg-white/10 backdrop-blur rounded-lg border border-white/20">
           <h3 className="text-white font-medium mb-2">🧪 Credenciais Demo</h3>
           <div className="text-sm text-blue-200 space-y-1">
-            <p><strong>Email:</strong> demo@fraudshield.revolutionary</p>
+            <p><strong>Email:</strong> demo@frauddetex.com</p>
             <p><strong>Senha:</strong> demo123</p>
           </div>
+          <p className="text-xs text-blue-300 mt-2">Os campos já estão preenchidos automaticamente!</p>
         </div>
 
         {/* Back to home */}

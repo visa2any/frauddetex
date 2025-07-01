@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -11,13 +12,24 @@ interface HeaderProps {
 
 export default function Header({ variant = 'homepage' }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
 
-  const navigationItems = [
+  // Navegação pública (sem Dashboard)
+  const publicNavigationItems = [
+    { href: '/solutions', label: 'Soluções', icon: '🎯' },
+    { href: '/pricing', label: 'Preços', icon: '💰' },
+    { href: '/blog', label: 'Blog', icon: '📚' }
+  ];
+
+  // Navegação autenticada (com Dashboard)
+  const authenticatedNavigationItems = [
     { href: '/solutions', label: 'Soluções', icon: '🎯' },
     { href: '/pricing', label: 'Preços', icon: '💰' },
     { href: '/blog', label: 'Blog', icon: '📚' },
     { href: '/dashboard', label: 'Dashboard', icon: '📊' }
   ];
+
+  const navigationItems = isAuthenticated ? authenticatedNavigationItems : publicNavigationItems;
 
   return (
     <header className="bg-slate-900/80 backdrop-blur-sm border-b border-slate-700/50 sticky top-0 z-50">
@@ -54,7 +66,32 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
 
           {/* Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            {variant === 'homepage' ? (
+            {isAuthenticated ? (
+              <>
+                <div className="flex items-center space-x-3">
+                  <div className="text-sm text-slate-300">
+                    Olá, <span className="text-white font-medium">{user?.name}</span>
+                  </div>
+                  <Badge variant="outline" className="border-green-500 text-green-400">
+                    {user?.role === 'admin' ? '👑 Admin' : '👤 User'}
+                  </Badge>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white" 
+                  asChild
+                >
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="border-slate-500 text-slate-400 hover:bg-slate-700 hover:text-white"
+                  onClick={logout}
+                >
+                  Sair
+                </Button>
+              </>
+            ) : (
               <>
                 <Button 
                   variant="outline" 
@@ -68,22 +105,6 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                   asChild
                 >
                   <Link href="/signup">🛡️ Proteger Agora</Link>
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button 
-                  variant="outline" 
-                  className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white" 
-                  asChild
-                >
-                  <Link href="/dashboard">Dashboard</Link>
-                </Button>
-                <Button 
-                  className="bg-red-500 hover:bg-red-600 text-white border-0" 
-                  asChild
-                >
-                  <Link href="/pricing">Ver Preços</Link>
                 </Button>
               </>
             )}
@@ -120,19 +141,49 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                 </Link>
               ))}
               <div className="pt-4 border-t border-slate-700 space-y-3">
-                <Button 
-                  variant="outline" 
-                  className="w-full border-red-500 text-red-400 hover:bg-red-500 hover:text-white" 
-                  asChild
-                >
-                  <Link href="/login">Login</Link>
-                </Button>
-                <Button 
-                  className="w-full bg-red-500 hover:bg-red-600 text-white border-0" 
-                  asChild
-                >
-                  <Link href="/signup">🛡️ Proteger Agora</Link>
-                </Button>
+                {isAuthenticated ? (
+                  <>
+                    <div className="text-center text-sm text-slate-300 mb-3">
+                      Olá, <span className="text-white font-medium">{user?.name}</span>
+                      <Badge variant="outline" className="ml-2 border-green-500 text-green-400">
+                        {user?.role === 'admin' ? '👑 Admin' : '👤 User'}
+                      </Badge>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-red-500 text-red-400 hover:bg-red-500 hover:text-white" 
+                      asChild
+                    >
+                      <Link href="/dashboard">Dashboard</Link>
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="w-full border-slate-500 text-slate-400 hover:bg-slate-700 hover:text-white"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        logout();
+                      }}
+                    >
+                      Sair
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-red-500 text-red-400 hover:bg-red-500 hover:text-white" 
+                      asChild
+                    >
+                      <Link href="/login">Login</Link>
+                    </Button>
+                    <Button 
+                      className="w-full bg-red-500 hover:bg-red-600 text-white border-0" 
+                      asChild
+                    >
+                      <Link href="/signup">🛡️ Proteger Agora</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </nav>
           </div>
