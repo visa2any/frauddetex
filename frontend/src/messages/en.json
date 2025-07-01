@@ -1,0 +1,138 @@
+{
+  "navigation": {
+    "solutions": "Solutions",
+    "products": "Products", 
+    "resources": "Resources",
+    "company": "Company",
+    "dashboard": "Dashboard",
+    "pricing": "Pricing",
+    "login": "Login",
+    "signup": "Protect Now",
+    "logout": "Logout"
+  },
+  "solutions": {
+    "fraud_detection": {
+      "title": "Fraud Detection",
+      "description": "Advanced AI to detect fraud in real-time"
+    },
+    "behavioral_analysis": {
+      "title": "Behavioral Analysis",
+      "description": "Behavioral biometrics and unique patterns"
+    },
+    "realtime_monitoring": {
+      "title": "24/7 Monitoring", 
+      "description": "Continuous protection and instant alerts"
+    },
+    "compliance": {
+      "title": "Compliance",
+      "description": "GDPR, PCI DSS, SOC 2 and ISO 27001"
+    },
+    "api_integration": {
+      "title": "API Integration",
+      "description": "REST APIs and SDKs for all languages"
+    },
+    "custom_rules": {
+      "title": "Custom Rules",
+      "description": "Configure business-specific rules"
+    }
+  },
+  "products": {
+    "pricing": {
+      "title": "Pricing",
+      "description": "Flexible plans for all sizes"
+    },
+    "enterprise": {
+      "title": "Enterprise",
+      "description": "Custom solutions for large companies"
+    },
+    "api_docs": {
+      "title": "API Reference",
+      "description": "Complete API documentation"
+    },
+    "integrations": {
+      "title": "Integrations",
+      "description": "Connect with your favorite tools"
+    },
+    "changelog": {
+      "title": "Changelog",
+      "description": "Platform updates and news"
+    }
+  },
+  "resources": {
+    "docs": {
+      "title": "Documentation",
+      "description": "Complete guides and tutorials"
+    },
+    "case_studies": {
+      "title": "Case Studies",
+      "description": "Real success stories"
+    },
+    "blog": {
+      "title": "Blog",
+      "description": "Articles about fraud and security"
+    },
+    "webinars": {
+      "title": "Webinars",
+      "description": "Online events and training"
+    },
+    "security": {
+      "title": "Security Center",
+      "description": "Information about our security"
+    },
+    "status": {
+      "title": "Status",
+      "description": "Service uptime and status"
+    }
+  },
+  "company": {
+    "about": {
+      "title": "About Us",
+      "description": "Our mission and story"
+    },
+    "careers": {
+      "title": "Careers",
+      "description": "Join our team"
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Get in touch"
+    },
+    "press": {
+      "title": "Press",
+      "description": "Press kit and news"
+    },
+    "partners": {
+      "title": "Partners",
+      "description": "Partner program"
+    }
+  },
+  "auth": {
+    "welcome_back": "Hello, {name}",
+    "admin_badge": "Admin",
+    "user_badge": "User",
+    "remember_me": "Keep me logged in",
+    "forgot_password": "Forgot password?",
+    "no_account": "Don't have an account?",
+    "create_account": "Create business account",
+    "already_have_account": "Already have an account?",
+    "security_badges": {
+      "ssl": "SSL/TLS",
+      "2fa": "2FA Available",
+      "soc2": "SOC 2", 
+      "lgpd": "GDPR Compliant"
+    }
+  },
+  "languages": {
+    "pt": "Português",
+    "en": "English",
+    "es": "Español", 
+    "fr": "Français"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "back_to_home": "Back to website",
+    "language": "Language"
+  }
+}

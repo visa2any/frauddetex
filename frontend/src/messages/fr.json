@@ -1,0 +1,138 @@
+{
+  "navigation": {
+    "solutions": "Solutions",
+    "products": "Produits",
+    "resources": "Ressources",
+    "company": "Entreprise",
+    "dashboard": "Tableau de Bord",
+    "pricing": "Tarifs",
+    "login": "Connexion",
+    "signup": "Protéger Maintenant",
+    "logout": "Déconnexion"
+  },
+  "solutions": {
+    "fraud_detection": {
+      "title": "Détection de Fraude",
+      "description": "IA avancée pour détecter les fraudes en temps réel"
+    },
+    "behavioral_analysis": {
+      "title": "Analyse Comportementale",
+      "description": "Biométrie comportementale et motifs uniques"
+    },
+    "realtime_monitoring": {
+      "title": "Surveillance 24/7",
+      "description": "Protection continue et alertes instantanées"
+    },
+    "compliance": {
+      "title": "Conformité",
+      "description": "RGPD, PCI DSS, SOC 2 et ISO 27001"
+    },
+    "api_integration": {
+      "title": "Intégration API",
+      "description": "APIs REST et SDKs pour tous les langages"
+    },
+    "custom_rules": {
+      "title": "Règles Personnalisées",
+      "description": "Configurez des règles spécifiques à votre entreprise"
+    }
+  },
+  "products": {
+    "pricing": {
+      "title": "Tarifs",
+      "description": "Plans flexibles pour toutes les tailles"
+    },
+    "enterprise": {
+      "title": "Entreprise",
+      "description": "Solutions personnalisées pour grandes entreprises"
+    },
+    "api_docs": {
+      "title": "Référence API",
+      "description": "Documentation complète de l'API"
+    },
+    "integrations": {
+      "title": "Intégrations",
+      "description": "Connectez-vous avec vos outils favoris"
+    },
+    "changelog": {
+      "title": "Journal des Modifications",
+      "description": "Nouveautés et mises à jour de la plateforme"
+    }
+  },
+  "resources": {
+    "docs": {
+      "title": "Documentation",
+      "description": "Guides complets et tutoriels"
+    },
+    "case_studies": {
+      "title": "Études de Cas",
+      "description": "Histoires de succès réelles"
+    },
+    "blog": {
+      "title": "Blog",
+      "description": "Articles sur la fraude et la sécurité"
+    },
+    "webinars": {
+      "title": "Webinaires",
+      "description": "Événements en ligne et formation"
+    },
+    "security": {
+      "title": "Centre de Sécurité",
+      "description": "Informations sur notre sécurité"
+    },
+    "status": {
+      "title": "Statut",
+      "description": "Temps de fonctionnement et statut des services"
+    }
+  },
+  "company": {
+    "about": {
+      "title": "À Propos",
+      "description": "Notre mission et notre histoire"
+    },
+    "careers": {
+      "title": "Carrières",
+      "description": "Rejoignez notre équipe"
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Contactez-nous"
+    },
+    "press": {
+      "title": "Presse",
+      "description": "Kit de presse et actualités"
+    },
+    "partners": {
+      "title": "Partenaires",
+      "description": "Programme de partenaires"
+    }
+  },
+  "auth": {
+    "welcome_back": "Bonjour, {name}",
+    "admin_badge": "Admin",
+    "user_badge": "Utilisateur",
+    "remember_me": "Rester connecté",
+    "forgot_password": "Mot de passe oublié ?",
+    "no_account": "Vous n'avez pas de compte ?",
+    "create_account": "Créer un compte d'entreprise",
+    "already_have_account": "Vous avez déjà un compte ?",
+    "security_badges": {
+      "ssl": "SSL/TLS",
+      "2fa": "2FA Disponible",
+      "soc2": "SOC 2",
+      "lgpd": "RGPD Conforme"
+    }
+  },
+  "languages": {
+    "pt": "Português",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "back_to_home": "Retour au site",
+    "language": "Langue"
+  }
+}
