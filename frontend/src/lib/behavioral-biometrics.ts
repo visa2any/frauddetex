@@ -1,696 +1,826 @@
 /**
- * Behavioral Biometrics Capture System
- * Captura padrões comportamentais do usuário para análise de fraude
+ * 👆 FraudDetex - Enterprise Behavioral Biometrics
+ * Advanced behavioral pattern analysis and capture
  */
 
-export interface MouseMetrics {
-  x: number;
-  y: number;
-  timestamp: number;
-  velocity: number;
-  acceleration: number;
-  angle: number;
-}
+import type { 
+  BehavioralData,
+  MouseEvent,
+  KeystrokeEvent,
+  ScrollEvent
+} from '../types';
+import { Logger } from './logger';
+import { FraudDetectionError, ErrorCode } from './error-handler';
 
-export interface KeystrokeMetrics {
-  key: string;
-  timestamp: number;
-  dwellTime: number;
-  flightTime: number;
-  pressure?: number;
-}
+// ============================================================================
+// CONSTANTS AND CONFIGURATION
+// ============================================================================
 
-export interface TouchMetrics {
-  x: number;
-  y: number;
-  pressure: number;
-  area: number;
-  timestamp: number;
-  angle?: number;
-}
+const CAPTURE_CONFIG = {
+  minCaptureTime: 3000, // Minimum 3 seconds of data
+  maxCaptureTime: 300000, // Maximum 5 minutes
+  mouseEventBuffer: 1000,
+  keystrokeEventBuffer: 500,
+  scrollEventBuffer: 200,
+  samplingRate: 50, // Sample every 50ms for mouse tracking
+  qualityThreshold: 0.6 // Minimum data quality score
+} as const;
 
-export interface ScrollMetrics {
-  deltaX: number;
-  deltaY: number;
-  timestamp: number;
-  velocity: number;
-  direction: string;
-}
+const BEHAVIORAL_THRESHOLDS = {
+  mouseVelocity: {
+    low: 50,
+    normal: 200,
+    high: 500,
+    suspicious: 1000
+  },
+  keystrokeTiming: {
+    veryFast: 50,
+    fast: 100,
+    normal: 200,
+    slow: 500
+  },
+  clickPressure: {
+    light: 0.2,
+    normal: 0.5,
+    heavy: 0.8
+  }
+} as const;
 
-export interface FocusMetrics {
-  element: string;
-  timestamp: number;
-  duration: number;
-  previousElement?: string;
-}
-
-export interface BehavioralMetrics {
-  mouse: MouseMetrics[];
-  keyboard: KeystrokeMetrics[];
-  touch: TouchMetrics[];
-  scroll: ScrollMetrics[];
-  focus: FocusMetrics[];
-  session: {
-    startTime: number;
-    userAgent: string;
-    screen: {
-      width: number;
-      height: number;
-      pixelRatio: number;
-    };
-    timezone: string;
-    language: string;
-  };
-}
-
-export interface BehavioralProfile {
-  mouseVelocityStats: StatisticalProfile;
-  keystrokeRhythm: KeystrokeProfile;
-  touchPressure: TouchProfile;
-  scrollBehavior: ScrollProfile;
-  focusPattern: FocusProfile;
-  anomalyScore: number;
-  confidence: number;
-  uniqueFingerprint: string;
-}
-
-interface StatisticalProfile {
-  mean: number;
-  median: number;
-  stdDev: number;
-  min: number;
-  max: number;
-  percentiles: {
-    p25: number;
-    p75: number;
-    p95: number;
-  };
-}
-
-interface KeystrokeProfile {
-  averageDwellTime: number;
-  averageFlightTime: number;
-  rhythm: number[];
-  consistency: number;
-  handedness: 'left' | 'right' | 'ambidextrous';
-}
-
-interface TouchProfile {
-  averagePressure: number;
-  averageArea: number;
-  consistencyScore: number;
-  deviceType: 'phone' | 'tablet' | 'unknown';
-}
-
-interface ScrollProfile {
-  preferredDirection: 'vertical' | 'horizontal' | 'mixed';
-  averageVelocity: number;
-  smoothness: number;
-  acceleration: number;
-}
-
-interface FocusProfile {
-  averageElementTime: number;
-  navigationPattern: string;
-  multitaskingScore: number;
-}
+// ============================================================================
+// BEHAVIORAL CAPTURE CLASS
+// ============================================================================
 
 export class BehavioralCapture {
-  private metrics: BehavioralMetrics;
-  private isCapturing: boolean = false;
-  private previousMouse: MouseMetrics | null = null;
-  private previousKeydown: number = 0;
-  private mouseTrail: HTMLElement[] = [];
+  private isCapturing = false;
+  private startTime = 0;
+  private mouseEvents: MouseEvent[] = [];
+  private keystrokeEvents: KeystrokeEvent[] = [];
+  private scrollEvents: ScrollEvent[] = [];
+  private logger: Logger;
+  private eventListeners: Array<() => void> = [];
+  private captureTimer: NodeJS.Timeout | null = null;
 
   constructor() {
-    this.metrics = {
-      mouse: [],
-      keyboard: [],
-      touch: [],
-      scroll: [],
-      focus: [],
-      session: {
-        startTime: Date.now(),
-        userAgent: navigator.userAgent,
-        screen: {
-          width: screen.width,
-          height: screen.height,
-          pixelRatio: window.devicePixelRatio
-        },
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        language: navigator.language
-      }
+    this.logger = new Logger('BehavioralCapture');
+  }
+
+  // ============================================================================
+  // PUBLIC METHODS
+  // ============================================================================
+
+  /**
+   * Start capturing behavioral data
+   */
+  startCapture(): void {
+    if (this.isCapturing) {
+      this.logger.warn('Behavioral capture already active');
+      return;
+    }
+
+    try {
+      this.isCapturing = true;
+      this.startTime = performance.now();
+      this.clearEventBuffers();
+      this.setupEventListeners();
+      this.startCaptureTimer();
+
+      this.logger.info('Behavioral capture started');
+    } catch (error) {
+      this.logger.error('Failed to start behavioral capture', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
+      throw new FraudDetectionError(
+        'Failed to initialize behavioral biometrics',
+        ErrorCode.BIOMETRICS_INIT_FAILED,
+        { timestamp: Date.now() }
+      );
+    }
+  }
+
+  /**
+   * Stop capturing behavioral data
+   */
+  stopCapture(): void {
+    if (!this.isCapturing) {
+      return;
+    }
+
+    this.isCapturing = false;
+    this.removeEventListeners();
+    
+    if (this.captureTimer) {
+      clearTimeout(this.captureTimer);
+      this.captureTimer = null;
+    }
+
+    const captureTime = performance.now() - this.startTime;
+    this.logger.info('Behavioral capture stopped', {
+      captureTimeMs: captureTime,
+      mouseEvents: this.mouseEvents.length,
+      keystrokeEvents: this.keystrokeEvents.length,
+      scrollEvents: this.scrollEvents.length
+    });
+  }
+
+  /**
+   * Analyze captured behavioral patterns
+   */
+  async analyzePatterns(): Promise<BehavioralData> {
+    if (this.isCapturing) {
+      this.logger.warn('Analysis requested while capture is active');
+    }
+
+    const captureTime = performance.now() - this.startTime;
+    
+    if (captureTime < CAPTURE_CONFIG.minCaptureTime) {
+      throw new FraudDetectionError(
+        'Insufficient behavioral data captured',
+        ErrorCode.INSUFFICIENT_BIOMETRIC_DATA,
+        { timestamp: Date.now() }
+      );
+    }
+
+    try {
+      const analysis = await this.performAnalysis();
+      
+      this.logger.info('Behavioral analysis completed', {
+        captureTimeMs: captureTime,
+        overallRiskScore: analysis.overall_risk_score,
+        dataQuality: analysis.data_quality
+      });
+
+      return analysis;
+    } catch (error) {
+      this.logger.error('Behavioral analysis failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        captureTimeMs: captureTime
+      });
+
+      throw new FraudDetectionError(
+        'Behavioral analysis failed',
+        ErrorCode.BIOMETRICS_CAPTURE_FAILED,
+        { timestamp: Date.now() }
+      );
+    }
+  }
+
+  /**
+   * Get current capture status
+   */
+  getCaptureStatus(): CaptureStatus {
+    const captureTime = this.isCapturing ? performance.now() - this.startTime : 0;
+    
+    return {
+      isCapturing: this.isCapturing,
+      captureTimeMs: captureTime,
+      eventCounts: {
+        mouse: this.mouseEvents.length,
+        keystroke: this.keystrokeEvents.length,
+        scroll: this.scrollEvents.length
+      },
+      dataQuality: this.calculateDataQuality()
     };
   }
 
-  startCapture(): void {
-    if (this.isCapturing) return;
+  // ============================================================================
+  // EVENT LISTENERS SETUP
+  // ============================================================================
+
+  private setupEventListeners(): void {
+    // Mouse events
+    const mouseHandler = this.throttle(this.handleMouseEvent.bind(this), CAPTURE_CONFIG.samplingRate);
+    const clickHandler = this.handleClickEvent.bind(this);
     
-    this.isCapturing = true;
-    this.attachEventListeners();
-    console.log('🎯 Behavioral biometrics capture started');
-  }
+    document.addEventListener('mousemove', mouseHandler, { passive: true });
+    document.addEventListener('click', clickHandler, { passive: true });
+    
+    this.eventListeners.push(
+      () => document.removeEventListener('mousemove', mouseHandler),
+      () => document.removeEventListener('click', clickHandler)
+    );
 
-  stopCapture(): void {
-    this.isCapturing = false;
-    this.removeEventListeners();
-    this.cleanupMouseTrail();
-    console.log('⏹️ Behavioral biometrics capture stopped');
-  }
+    // Keyboard events
+    const keydownHandler = this.handleKeydownEvent.bind(this);
+    const keyupHandler = this.handleKeyupEvent.bind(this);
+    
+    document.addEventListener('keydown', keydownHandler, { passive: true });
+    document.addEventListener('keyup', keyupHandler, { passive: true });
+    
+    this.eventListeners.push(
+      () => document.removeEventListener('keydown', keydownHandler),
+      () => document.removeEventListener('keyup', keyupHandler)
+    );
 
-  private attachEventListeners(): void {
-    // Mouse dynamics
-    document.addEventListener('mousemove', this.handleMouseMove.bind(this));
-    document.addEventListener('click', this.handleMouseClick.bind(this));
+    // Scroll events
+    const scrollHandler = this.throttle(this.handleScrollEvent.bind(this), 100);
+    
+    window.addEventListener('scroll', scrollHandler, { passive: true });
+    
+    this.eventListeners.push(
+      () => window.removeEventListener('scroll', scrollHandler)
+    );
 
-    // Keyboard dynamics
-    document.addEventListener('keydown', this.handleKeyDown.bind(this));
-    document.addEventListener('keyup', this.handleKeyUp.bind(this));
-
-    // Touch dynamics (mobile)
-    document.addEventListener('touchstart', this.handleTouchStart.bind(this));
-    document.addEventListener('touchmove', this.handleTouchMove.bind(this));
-    document.addEventListener('touchend', this.handleTouchEnd.bind(this));
-
-    // Scroll behavior
-    document.addEventListener('scroll', this.handleScroll.bind(this));
-    document.addEventListener('wheel', this.handleWheel.bind(this));
-
-    // Focus patterns
-    document.addEventListener('focus', this.handleFocus.bind(this), true);
-    document.addEventListener('blur', this.handleBlur.bind(this), true);
-
-    // Window events
-    window.addEventListener('blur', this.handleWindowBlur.bind(this));
-    window.addEventListener('focus', this.handleWindowFocus.bind(this));
+    // Touch events for mobile
+    if ('ontouchstart' in window) {
+      const touchHandler = this.handleTouchEvent.bind(this);
+      
+      document.addEventListener('touchstart', touchHandler, { passive: true });
+      document.addEventListener('touchmove', touchHandler, { passive: true });
+      
+      this.eventListeners.push(
+        () => document.removeEventListener('touchstart', touchHandler),
+        () => document.removeEventListener('touchmove', touchHandler)
+      );
+    }
   }
 
   private removeEventListeners(): void {
-    document.removeEventListener('mousemove', this.handleMouseMove.bind(this));
-    document.removeEventListener('click', this.handleMouseClick.bind(this));
-    document.removeEventListener('keydown', this.handleKeyDown.bind(this));
-    document.removeEventListener('keyup', this.handleKeyUp.bind(this));
-    document.removeEventListener('touchstart', this.handleTouchStart.bind(this));
-    document.removeEventListener('touchmove', this.handleTouchMove.bind(this));
-    document.removeEventListener('touchend', this.handleTouchEnd.bind(this));
-    document.removeEventListener('scroll', this.handleScroll.bind(this));
-    document.removeEventListener('wheel', this.handleWheel.bind(this));
-    document.removeEventListener('focus', this.handleFocus.bind(this), true);
-    document.removeEventListener('blur', this.handleBlur.bind(this), true);
-    window.removeEventListener('blur', this.handleWindowBlur.bind(this));
-    window.removeEventListener('focus', this.handleWindowFocus.bind(this));
+    this.eventListeners.forEach(removeListener => removeListener());
+    this.eventListeners = [];
   }
 
-  private handleMouseMove(event: MouseEvent): void {
-    const timestamp = Date.now();
-    const current: MouseMetrics = {
+  // ============================================================================
+  // EVENT HANDLERS
+  // ============================================================================
+
+  private handleMouseEvent(event: globalThis.MouseEvent): void {
+    if (!this.isCapturing) return;
+
+    const mouseEvent: MouseEvent = {
       x: event.clientX,
       y: event.clientY,
-      timestamp,
-      velocity: 0,
-      acceleration: 0,
-      angle: 0
+      timestamp: performance.now(),
+      pressure: this.getMousePressure(event)
     };
 
-    if (this.previousMouse) {
-      const deltaTime = timestamp - this.previousMouse.timestamp;
-      const deltaX = current.x - this.previousMouse.x;
-      const deltaY = current.y - this.previousMouse.y;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    this.addMouseEvent(mouseEvent);
+  }
+
+  private handleClickEvent(event: globalThis.MouseEvent): void {
+    if (!this.isCapturing) return;
+
+    const mouseEvent: MouseEvent = {
+      x: event.clientX,
+      y: event.clientY,
+      timestamp: performance.now(),
+      pressure: this.getMousePressure(event),
+      button: event.button
+    };
+
+    this.addMouseEvent(mouseEvent);
+  }
+
+  private handleKeydownEvent(event: KeyboardEvent): void {
+    if (!this.isCapturing) return;
+
+    // Store keydown timestamp for dwell time calculation
+    this.storeKeystrokeStart(event.key, performance.now());
+  }
+
+  private handleKeyupEvent(event: KeyboardEvent): void {
+    if (!this.isCapturing) return;
+
+    const endTime = performance.now();
+    const startTime = this.getKeystrokeStart(event.key);
+    
+    if (startTime) {
+      const dwellTime = endTime - startTime;
+      const flightTime = this.calculateFlightTime(event.key, endTime);
       
-      current.velocity = distance / deltaTime;
-      current.acceleration = (current.velocity - this.previousMouse.velocity) / deltaTime;
-      current.angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
-    }
+      const keystrokeEvent: KeystrokeEvent = {
+        key: this.sanitizeKey(event.key),
+        timestamp: endTime,
+        dwellTime,
+        flightTime
+      };
 
-    this.metrics.mouse.push(current);
-    this.previousMouse = current;
-
-    // Visual mouse trail for demonstration
-    this.createMouseTrail(current.x, current.y);
-
-    // Keep only last 1000 mouse movements
-    if (this.metrics.mouse.length > 1000) {
-      this.metrics.mouse.shift();
+      this.addKeystrokeEvent(keystrokeEvent);
     }
   }
 
-  private handleMouseClick(event: MouseEvent): void {
-    // Record click with additional context
-    this.metrics.mouse.push({
-      x: event.clientX,
-      y: event.clientY,
-      timestamp: Date.now(),
-      velocity: 0,
-      acceleration: 0,
-      angle: 0
-    });
-  }
+  private handleScrollEvent(event: Event): void {
+    if (!this.isCapturing) return;
 
-  private handleKeyDown(event: KeyboardEvent): void {
-    this.previousKeydown = Date.now();
-  }
+    const target = event.target as Element;
+    const scrollTop = target.scrollTop || window.pageYOffset;
+    const scrollLeft = target.scrollLeft || window.pageXOffset;
 
-  private handleKeyUp(event: KeyboardEvent): void {
-    const timestamp = Date.now();
-    const dwellTime = timestamp - this.previousKeydown;
-    
-    const keystroke: KeystrokeMetrics = {
-      key: event.code,
-      timestamp,
-      dwellTime,
-      flightTime: 0, // Will be calculated on next keydown
-      pressure: (event as any).pressure || 0
+    const scrollEvent: ScrollEvent = {
+      deltaX: scrollLeft - (this.lastScrollX || 0),
+      deltaY: scrollTop - (this.lastScrollY || 0),
+      timestamp: performance.now(),
+      velocity: this.calculateScrollVelocity()
     };
 
-    // Calculate flight time if there's a previous keystroke
-    if (this.metrics.keyboard.length > 0) {
-      const previous = this.metrics.keyboard[this.metrics.keyboard.length - 1];
-      keystroke.flightTime = this.previousKeydown - previous.timestamp;
-    }
-
-    this.metrics.keyboard.push(keystroke);
-
-    // Keep only last 200 keystrokes
-    if (this.metrics.keyboard.length > 200) {
-      this.metrics.keyboard.shift();
-    }
+    this.lastScrollX = scrollLeft;
+    this.lastScrollY = scrollTop;
+    this.addScrollEvent(scrollEvent);
   }
 
-  private handleTouchStart(event: TouchEvent): void {
-    Array.from(event.touches).forEach(touch => {
-      this.metrics.touch.push({
-        x: touch.clientX,
-        y: touch.clientY,
-        pressure: touch.force || 0,
-        area: this.calculateTouchArea(touch),
-        timestamp: Date.now(),
-        angle: touch.rotationAngle || 0
-      });
-    });
-  }
+  private handleTouchEvent(event: TouchEvent): void {
+    if (!this.isCapturing || event.touches.length === 0) return;
 
-  private handleTouchMove(event: TouchEvent): void {
-    Array.from(event.touches).forEach(touch => {
-      this.metrics.touch.push({
-        x: touch.clientX,
-        y: touch.clientY,
-        pressure: touch.force || 0,
-        area: this.calculateTouchArea(touch),
-        timestamp: Date.now(),
-        angle: touch.rotationAngle || 0
-      });
-    });
-  }
-
-  private handleTouchEnd(event: TouchEvent): void {
-    // Touch end events
-  }
-
-  private handleScroll(event: Event): void {
-    this.metrics.scroll.push({
-      deltaX: 0,
-      deltaY: window.scrollY,
-      timestamp: Date.now(),
-      velocity: 0,
-      direction: 'vertical'
-    });
-  }
-
-  private handleWheel(event: WheelEvent): void {
-    const scroll: ScrollMetrics = {
-      deltaX: event.deltaX,
-      deltaY: event.deltaY,
-      timestamp: Date.now(),
-      velocity: Math.sqrt(event.deltaX * event.deltaX + event.deltaY * event.deltaY),
-      direction: Math.abs(event.deltaX) > Math.abs(event.deltaY) ? 'horizontal' : 'vertical'
+    const touch = event.touches[0];
+    const mouseEvent: MouseEvent = {
+      x: touch.clientX,
+      y: touch.clientY,
+      timestamp: performance.now(),
+      pressure: touch.force || 0.5 // Use touch force if available
     };
 
-    this.metrics.scroll.push(scroll);
-
-    // Keep only last 100 scroll events
-    if (this.metrics.scroll.length > 100) {
-      this.metrics.scroll.shift();
-    }
+    this.addMouseEvent(mouseEvent);
   }
 
-  private handleFocus(event: FocusEvent): void {
-    const element = (event.target as HTMLElement)?.tagName || 'unknown';
-    this.metrics.focus.push({
-      element,
-      timestamp: Date.now(),
-      duration: 0
-    });
-  }
+  // ============================================================================
+  // EVENT PROCESSING
+  // ============================================================================
 
-  private handleBlur(event: FocusEvent): void {
-    if (this.metrics.focus.length > 0) {
-      const lastFocus = this.metrics.focus[this.metrics.focus.length - 1];
-      lastFocus.duration = Date.now() - lastFocus.timestamp;
-    }
-  }
-
-  private handleWindowBlur(): void {
-    // User switched tab/window
-  }
-
-  private handleWindowFocus(): void {
-    // User returned to tab/window
-  }
-
-  private calculateTouchArea(touch: Touch): number {
-    return Math.PI * (touch.radiusX || 10) * (touch.radiusY || 10);
-  }
-
-  private createMouseTrail(x: number, y: number): void {
-    const trail = document.createElement('div');
-    trail.className = 'mouse-trail';
-    trail.style.left = `${x}px`;
-    trail.style.top = `${y}px`;
+  private addMouseEvent(event: MouseEvent): void {
+    this.mouseEvents.push(event);
     
-    document.body.appendChild(trail);
-    this.mouseTrail.push(trail);
-
-    // Remove after animation
-    setTimeout(() => {
-      if (trail.parentNode) {
-        trail.parentNode.removeChild(trail);
-      }
-      const index = this.mouseTrail.indexOf(trail);
-      if (index > -1) {
-        this.mouseTrail.splice(index, 1);
-      }
-    }, 500);
-
-    // Keep only last 20 trails
-    if (this.mouseTrail.length > 20) {
-      const oldTrail = this.mouseTrail.shift();
-      if (oldTrail && oldTrail.parentNode) {
-        oldTrail.parentNode.removeChild(oldTrail);
-      }
+    // Maintain buffer size
+    if (this.mouseEvents.length > CAPTURE_CONFIG.mouseEventBuffer) {
+      this.mouseEvents.shift();
     }
   }
 
-  private cleanupMouseTrail(): void {
-    this.mouseTrail.forEach(trail => {
-      if (trail.parentNode) {
-        trail.parentNode.removeChild(trail);
-      }
-    });
-    this.mouseTrail = [];
+  private addKeystrokeEvent(event: KeystrokeEvent): void {
+    this.keystrokeEvents.push(event);
+    
+    // Maintain buffer size
+    if (this.keystrokeEvents.length > CAPTURE_CONFIG.keystrokeEventBuffer) {
+      this.keystrokeEvents.shift();
+    }
   }
 
-  async analyzePatterns(): Promise<BehavioralProfile> {
-    const mouseStats = this.calculateStatistics(this.metrics.mouse.map(m => m.velocity));
-    const keystrokeRhythm = this.analyzeKeystrokePattern();
-    const touchPressure = this.analyzeTouchPattern();
-    const scrollBehavior = this.analyzeScrollPattern();
-    const focusPattern = this.analyzeFocusPattern();
-    const anomalyScore = await this.detectAnomalies();
-    const fingerprint = await this.generateFingerprint();
+  private addScrollEvent(event: ScrollEvent): void {
+    this.scrollEvents.push(event);
+    
+    // Maintain buffer size
+    if (this.scrollEvents.length > CAPTURE_CONFIG.scrollEventBuffer) {
+      this.scrollEvents.shift();
+    }
+  }
+
+  // ============================================================================
+  // ANALYSIS METHODS
+  // ============================================================================
+
+  private async performAnalysis(): Promise<BehavioralData> {
+    const captureTime = performance.now() - this.startTime;
+    
+    // Mouse analysis
+    const mouseAnalysis = this.analyzeMouseBehavior();
+    
+    // Keystroke analysis
+    const keystrokeAnalysis = this.analyzeKeystrokeBehavior();
+    
+    // Scroll analysis
+    const scrollAnalysis = this.analyzeScrollBehavior();
+    
+    // Calculate overall risk score
+    const overallRiskScore = this.calculateOverallRiskScore(
+      mouseAnalysis,
+      keystrokeAnalysis,
+      scrollAnalysis
+    );
+    
+    // Calculate data quality
+    const dataQuality = this.calculateDataQuality();
 
     return {
-      mouseVelocityStats: mouseStats,
-      keystrokeRhythm,
-      touchPressure,
-      scrollBehavior,
-      focusPattern,
-      anomalyScore,
-      confidence: this.calculateConfidence(),
-      uniqueFingerprint: fingerprint
+      mouse_velocity_avg: mouseAnalysis.averageVelocity,
+      mouse_click_pressure: mouseAnalysis.averagePressure,
+      keystroke_dwell_time: keystrokeAnalysis.averageDwellTime,
+      typing_rhythm_score: keystrokeAnalysis.rhythmScore,
+      scroll_pattern_score: scrollAnalysis.patternScore,
+      session_duration: captureTime,
+      overall_risk_score: overallRiskScore,
+      data_quality: dataQuality,
+      captured_at: this.startTime
     };
   }
 
-  private calculateStatistics(values: number[]): StatisticalProfile {
-    if (values.length === 0) {
+  private analyzeMouseBehavior(): MouseAnalysis {
+    if (this.mouseEvents.length < 2) {
       return {
-        mean: 0, median: 0, stdDev: 0, min: 0, max: 0,
-        percentiles: { p25: 0, p75: 0, p95: 0 }
+        averageVelocity: 0,
+        averagePressure: 0.5,
+        movementPattern: 'insufficient_data',
+        riskScore: 0.5
       };
     }
 
-    const sorted = [...values].sort((a, b) => a - b);
-    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance = values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / values.length;
+    const velocities: number[] = [];
+    const pressures: number[] = [];
     
-    return {
-      mean,
-      median: sorted[Math.floor(sorted.length / 2)],
-      stdDev: Math.sqrt(variance),
-      min: sorted[0],
-      max: sorted[sorted.length - 1],
-      percentiles: {
-        p25: sorted[Math.floor(sorted.length * 0.25)],
-        p75: sorted[Math.floor(sorted.length * 0.75)],
-        p95: sorted[Math.floor(sorted.length * 0.95)]
+    for (let i = 1; i < this.mouseEvents.length; i++) {
+      const current = this.mouseEvents[i];
+      const previous = this.mouseEvents[i - 1];
+      
+      const distance = Math.sqrt(
+        Math.pow(current.x - previous.x, 2) + 
+        Math.pow(current.y - previous.y, 2)
+      );
+      
+      const timeDiff = current.timestamp - previous.timestamp;
+      const velocity = timeDiff > 0 ? distance / timeDiff : 0;
+      
+      velocities.push(velocity);
+      
+      if (current.pressure !== undefined) {
+        pressures.push(current.pressure);
       }
+    }
+
+    const averageVelocity = velocities.reduce((a, b) => a + b, 0) / velocities.length;
+    const averagePressure = pressures.length > 0 ? 
+      pressures.reduce((a, b) => a + b, 0) / pressures.length : 0.5;
+
+    const movementPattern = this.classifyMovementPattern(velocities);
+    const riskScore = this.calculateMouseRiskScore(averageVelocity, averagePressure, movementPattern);
+
+    return {
+      averageVelocity,
+      averagePressure,
+      movementPattern,
+      riskScore
     };
   }
 
-  private analyzeKeystrokePattern(): KeystrokeProfile {
-    if (this.metrics.keyboard.length === 0) {
+  private analyzeKeystrokeBehavior(): KeystrokeAnalysis {
+    if (this.keystrokeEvents.length < 2) {
       return {
         averageDwellTime: 0,
-        averageFlightTime: 0,
-        rhythm: [],
-        consistency: 0,
-        handedness: 'ambidextrous'
+        rhythmScore: 0.5,
+        typingPattern: 'insufficient_data',
+        riskScore: 0.5
       };
     }
 
-    const dwellTimes = this.metrics.keyboard.map(k => k.dwellTime);
-    const flightTimes = this.metrics.keyboard.map(k => k.flightTime);
+    const dwellTimes = this.keystrokeEvents.map(event => event.dwellTime);
+    const flightTimes = this.keystrokeEvents
+      .map(event => event.flightTime)
+      .filter((time): time is number => time !== undefined);
+
+    const averageDwellTime = dwellTimes.reduce((a, b) => a + b, 0) / dwellTimes.length;
+    const dwellTimeVariance = this.calculateVariance(dwellTimes);
     
+    const rhythmScore = this.calculateTypingRhythm(dwellTimes, flightTimes);
+    const typingPattern = this.classifyTypingPattern(averageDwellTime, dwellTimeVariance);
+    const riskScore = this.calculateKeystrokeRiskScore(averageDwellTime, rhythmScore);
+
     return {
-      averageDwellTime: dwellTimes.reduce((a, b) => a + b, 0) / dwellTimes.length,
-      averageFlightTime: flightTimes.reduce((a, b) => a + b, 0) / flightTimes.length,
-      rhythm: dwellTimes.slice(0, 20), // First 20 keystrokes rhythm
-      consistency: this.calculateConsistency(dwellTimes),
-      handedness: this.determineHandedness()
+      averageDwellTime,
+      rhythmScore,
+      typingPattern,
+      riskScore
     };
   }
 
-  private analyzeTouchPattern(): TouchProfile {
-    if (this.metrics.touch.length === 0) {
+  private analyzeScrollBehavior(): ScrollAnalysis {
+    if (this.scrollEvents.length < 2) {
       return {
-        averagePressure: 0,
-        averageArea: 0,
-        consistencyScore: 0,
-        deviceType: 'unknown'
-      };
-    }
-
-    const pressures = this.metrics.touch.map(t => t.pressure);
-    const areas = this.metrics.touch.map(t => t.area);
-
-    return {
-      averagePressure: pressures.reduce((a, b) => a + b, 0) / pressures.length,
-      averageArea: areas.reduce((a, b) => a + b, 0) / areas.length,
-      consistencyScore: this.calculateConsistency(pressures),
-      deviceType: this.determineDeviceType()
-    };
-  }
-
-  private analyzeScrollPattern(): ScrollProfile {
-    if (this.metrics.scroll.length === 0) {
-      return {
-        preferredDirection: 'vertical',
+        patternScore: 0.5,
         averageVelocity: 0,
-        smoothness: 0,
-        acceleration: 0
+        scrollingPattern: 'insufficient_data',
+        riskScore: 0.5
       };
     }
 
-    const velocities = this.metrics.scroll.map(s => s.velocity);
-    const verticalCount = this.metrics.scroll.filter(s => s.direction === 'vertical').length;
-    const horizontalCount = this.metrics.scroll.filter(s => s.direction === 'horizontal').length;
-
-    return {
-      preferredDirection: verticalCount > horizontalCount ? 'vertical' : 'horizontal',
-      averageVelocity: velocities.reduce((a, b) => a + b, 0) / velocities.length,
-      smoothness: this.calculateSmoothness(velocities),
-      acceleration: this.calculateAcceleration(velocities)
-    };
-  }
-
-  private analyzeFocusPattern(): FocusProfile {
-    if (this.metrics.focus.length === 0) {
-      return {
-        averageElementTime: 0,
-        navigationPattern: 'unknown',
-        multitaskingScore: 0
-      };
-    }
-
-    const durations = this.metrics.focus.map(f => f.duration);
+    const velocities = this.scrollEvents.map(event => event.velocity);
+    const averageVelocity = velocities.reduce((a, b) => a + b, 0) / velocities.length;
     
+    const patternScore = this.calculateScrollPattern();
+    const scrollingPattern = this.classifyScrollingPattern(averageVelocity, patternScore);
+    const riskScore = this.calculateScrollRiskScore(averageVelocity, patternScore);
+
     return {
-      averageElementTime: durations.reduce((a, b) => a + b, 0) / durations.length,
-      navigationPattern: this.identifyNavigationPattern(),
-      multitaskingScore: this.calculateMultitaskingScore()
+      patternScore,
+      averageVelocity,
+      scrollingPattern,
+      riskScore
     };
   }
 
-  private async detectAnomalies(): Promise<number> {
-    // Simple anomaly detection based on statistical outliers
-    let anomalyScore = 0;
+  // ============================================================================
+  // RISK CALCULATION
+  // ============================================================================
 
-    // Check for unusually high mouse velocity
-    const mouseVelocities = this.metrics.mouse.map(m => m.velocity);
-    const avgVelocity = mouseVelocities.reduce((a, b) => a + b, 0) / mouseVelocities.length;
-    if (avgVelocity > 1000) anomalyScore += 20; // Unusually fast mouse movement
+  private calculateOverallRiskScore(
+    mouse: MouseAnalysis,
+    keystroke: KeystrokeAnalysis,
+    scroll: ScrollAnalysis
+  ): number {
+    const weights = {
+      mouse: 0.4,
+      keystroke: 0.4,
+      scroll: 0.2
+    };
 
-    // Check for robotic keystroke patterns
-    const dwellTimes = this.metrics.keyboard.map(k => k.dwellTime);
-    const keystrokeVariance = this.calculateVariance(dwellTimes);
-    if (keystrokeVariance < 100) anomalyScore += 30; // Too consistent (robotic)
+    return Math.min(1, Math.max(0,
+      mouse.riskScore * weights.mouse +
+      keystroke.riskScore * weights.keystroke +
+      scroll.riskScore * weights.scroll
+    ));
+  }
 
-    // Check for impossible human behavior
-    if (this.metrics.touch.length > 0 && this.metrics.mouse.length > 0) {
-      // Simultaneous touch and mouse (possible bot)
-      anomalyScore += 15;
+  private calculateMouseRiskScore(
+    averageVelocity: number,
+    averagePressure: number,
+    pattern: string
+  ): number {
+    let score = 0.3; // Base score
+
+    // Velocity-based risk
+    if (averageVelocity > BEHAVIORAL_THRESHOLDS.mouseVelocity.suspicious) {
+      score += 0.4; // Very high velocity (bot-like)
+    } else if (averageVelocity < BEHAVIORAL_THRESHOLDS.mouseVelocity.low) {
+      score += 0.2; // Very low velocity (unusual)
     }
 
-    return Math.min(anomalyScore, 100);
+    // Pressure-based risk
+    if (averagePressure === 0 || averagePressure === 1) {
+      score += 0.3; // Unusual pressure (potential simulation)
+    }
+
+    // Pattern-based risk
+    if (pattern === 'linear' || pattern === 'robotic') {
+      score += 0.3;
+    }
+
+    return Math.min(1, score);
   }
 
-  private async generateFingerprint(): Promise<string> {
-    const fingerprintData = {
-      session: this.metrics.session,
-      mousePattern: this.metrics.mouse.slice(0, 10).map(m => 
-        `${Math.round(m.velocity * 100)}${Math.round(m.angle)}`
-      ).join(''),
-      keystrokePattern: this.metrics.keyboard.slice(0, 10).map(k =>
-        `${k.dwellTime}${k.flightTime}`
-      ).join(''),
-      scrollPattern: this.metrics.scroll.slice(0, 5).map(s =>
-        `${Math.round(s.velocity)}${s.direction[0]}`
-      ).join('')
-    };
+  private calculateKeystrokeRiskScore(averageDwellTime: number, rhythmScore: number): number {
+    let score = 0.3; // Base score
 
-    const encoder = new TextEncoder();
-    const data = encoder.encode(JSON.stringify(fingerprintData));
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    // Dwell time risk
+    if (averageDwellTime < BEHAVIORAL_THRESHOLDS.keystrokeTiming.veryFast) {
+      score += 0.4; // Too fast (bot-like)
+    } else if (averageDwellTime > BEHAVIORAL_THRESHOLDS.keystrokeTiming.slow) {
+      score += 0.2; // Too slow (unusual)
+    }
+
+    // Rhythm risk
+    if (rhythmScore < 0.3 || rhythmScore > 0.9) {
+      score += 0.3; // Unusual rhythm pattern
+    }
+
+    return Math.min(1, score);
   }
 
-  private calculateConsistency(values: number[]): number {
-    if (values.length === 0) return 0;
-    const variance = this.calculateVariance(values);
-    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    return 100 - Math.min(100, (variance / mean) * 100);
+  private calculateScrollRiskScore(averageVelocity: number, patternScore: number): number {
+    let score = 0.3; // Base score
+
+    // Velocity-based risk
+    if (averageVelocity > 1000) {
+      score += 0.3; // Very fast scrolling
+    }
+
+    // Pattern-based risk
+    if (patternScore < 0.2 || patternScore > 0.9) {
+      score += 0.4; // Unusual pattern
+    }
+
+    return Math.min(1, score);
+  }
+
+  // ============================================================================
+  // UTILITY METHODS
+  // ============================================================================
+
+  private calculateDataQuality(): number {
+    const captureTime = performance.now() - this.startTime;
+    
+    let quality = 0;
+    
+    // Time quality (0-0.4)
+    if (captureTime >= CAPTURE_CONFIG.minCaptureTime) {
+      quality += Math.min(0.4, captureTime / (CAPTURE_CONFIG.minCaptureTime * 2));
+    }
+    
+    // Event count quality (0-0.6)
+    const mouseQuality = Math.min(0.2, this.mouseEvents.length / 100);
+    const keystrokeQuality = Math.min(0.2, this.keystrokeEvents.length / 50);
+    const scrollQuality = Math.min(0.2, this.scrollEvents.length / 20);
+    
+    quality += mouseQuality + keystrokeQuality + scrollQuality;
+    
+    return Math.min(1, quality);
+  }
+
+  private classifyMovementPattern(velocities: number[]): string {
+    const variance = this.calculateVariance(velocities);
+    const averageVelocity = velocities.reduce((a, b) => a + b, 0) / velocities.length;
+    
+    if (variance < 10 && averageVelocity > 100) {
+      return 'linear'; // Consistent high velocity
+    } else if (variance < 5) {
+      return 'robotic'; // Very consistent velocity
+    } else if (variance > 1000) {
+      return 'erratic'; // Highly variable
+    } else {
+      return 'natural'; // Normal human variation
+    }
+  }
+
+  private classifyTypingPattern(averageDwellTime: number, variance: number): string {
+    if (averageDwellTime < 50 && variance < 10) {
+      return 'robotic'; // Too consistent and fast
+    } else if (averageDwellTime > 300) {
+      return 'hunt_and_peck'; // Slow, methodical typing
+    } else if (variance < 20) {
+      return 'mechanical'; // Very consistent timing
+    } else {
+      return 'natural'; // Normal human variation
+    }
+  }
+
+  private classifyScrollingPattern(averageVelocity: number, patternScore: number): string {
+    if (averageVelocity > 500 && patternScore > 0.8) {
+      return 'robotic'; // Fast and too regular
+    } else if (averageVelocity < 10) {
+      return 'careful'; // Very slow scrolling
+    } else {
+      return 'natural'; // Normal scrolling
+    }
   }
 
   private calculateVariance(values: number[]): number {
     if (values.length === 0) return 0;
+    
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    return values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / values.length;
+    const squaredDiffs = values.map(value => Math.pow(value - mean, 2));
+    return squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
   }
 
-  private calculateSmoothness(velocities: number[]): number {
-    if (velocities.length < 2) return 0;
-    let smoothness = 0;
-    for (let i = 1; i < velocities.length; i++) {
-      smoothness += Math.abs(velocities[i] - velocities[i - 1]);
+  private calculateTypingRhythm(dwellTimes: number[], flightTimes: number[]): number {
+    // Calculate rhythm consistency
+    const dwellVariance = this.calculateVariance(dwellTimes);
+    const flightVariance = flightTimes.length > 0 ? this.calculateVariance(flightTimes) : 0;
+    
+    // Lower variance indicates more consistent rhythm
+    const rhythmConsistency = 1 - Math.min(1, (dwellVariance + flightVariance) / 10000);
+    
+    return Math.max(0, Math.min(1, rhythmConsistency));
+  }
+
+  private calculateScrollPattern(): number {
+    if (this.scrollEvents.length < 3) return 0.5;
+    
+    // Analyze scroll acceleration patterns
+    const accelerations: number[] = [];
+    
+    for (let i = 2; i < this.scrollEvents.length; i++) {
+      const curr = this.scrollEvents[i];
+      const prev = this.scrollEvents[i - 1];
+      const prev2 = this.scrollEvents[i - 2];
+      
+      const accel1 = curr.velocity - prev.velocity;
+      const accel2 = prev.velocity - prev2.velocity;
+      
+      accelerations.push(Math.abs(accel1 - accel2));
     }
-    return 100 - Math.min(100, smoothness / velocities.length);
+    
+    const averageAcceleration = accelerations.reduce((a, b) => a + b, 0) / accelerations.length;
+    
+    // Lower acceleration variance indicates more natural scrolling
+    return Math.max(0, Math.min(1, 1 - (averageAcceleration / 100)));
   }
 
-  private calculateAcceleration(velocities: number[]): number {
-    if (velocities.length < 2) return 0;
-    let totalAcceleration = 0;
-    for (let i = 1; i < velocities.length; i++) {
-      totalAcceleration += Math.abs(velocities[i] - velocities[i - 1]);
+  // Helper methods for event processing
+  private lastScrollX = 0;
+  private lastScrollY = 0;
+  private keystrokeStarts = new Map<string, number>();
+  private lastKeystrokeTime = 0;
+
+  private getMousePressure(event: globalThis.MouseEvent): number {
+    // Simulated pressure based on button and event type
+    if ('pressure' in event && typeof (event as any).pressure === 'number') {
+      return (event as any).pressure;
     }
-    return totalAcceleration / (velocities.length - 1);
-  }
-
-  private determineHandedness(): 'left' | 'right' | 'ambidextrous' {
-    // Simple heuristic based on common key patterns
-    const leftKeys = ['q', 'w', 'e', 'r', 't', 'a', 's', 'd', 'f', 'g'];
-    const rightKeys = ['y', 'u', 'i', 'o', 'p', 'h', 'j', 'k', 'l'];
     
-    let leftCount = 0;
-    let rightCount = 0;
-
-    this.metrics.keyboard.forEach(k => {
-      if (leftKeys.some(key => k.key.toLowerCase().includes(key))) leftCount++;
-      if (rightKeys.some(key => k.key.toLowerCase().includes(key))) rightCount++;
-    });
-
-    if (leftCount > rightCount * 1.2) return 'left';
-    if (rightCount > leftCount * 1.2) return 'right';
-    return 'ambidextrous';
+    // Default pressure simulation
+    return event.type === 'click' ? 0.8 : 0.3;
   }
 
-  private determineDeviceType(): 'phone' | 'tablet' | 'unknown' {
-    const screenWidth = this.metrics.session.screen.width;
-    if (screenWidth < 480) return 'phone';
-    if (screenWidth < 1024) return 'tablet';
-    return 'unknown';
+  private storeKeystrokeStart(key: string, timestamp: number): void {
+    this.keystrokeStarts.set(key, timestamp);
   }
 
-  private identifyNavigationPattern(): string {
-    const elements = this.metrics.focus.map(f => f.element);
-    const uniqueElements = [...new Set(elements)];
+  private getKeystrokeStart(key: string): number | undefined {
+    const startTime = this.keystrokeStarts.get(key);
+    this.keystrokeStarts.delete(key);
+    return startTime;
+  }
+
+  private calculateFlightTime(key: string, endTime: number): number | undefined {
+    if (this.lastKeystrokeTime > 0) {
+      const flightTime = endTime - this.lastKeystrokeTime;
+      this.lastKeystrokeTime = endTime;
+      return flightTime;
+    }
     
-    if (uniqueElements.length < 3) return 'focused';
-    if (uniqueElements.length > elements.length * 0.8) return 'scattered';
-    return 'balanced';
+    this.lastKeystrokeTime = endTime;
+    return undefined;
   }
 
-  private calculateMultitaskingScore(): number {
-    if (this.metrics.focus.length < 2) return 0;
+  private calculateScrollVelocity(): number {
+    if (this.scrollEvents.length < 2) return 0;
     
-    let switches = 0;
-    for (let i = 1; i < this.metrics.focus.length; i++) {
-      if (this.metrics.focus[i].element !== this.metrics.focus[i - 1].element) {
-        switches++;
+    const current = this.scrollEvents[this.scrollEvents.length - 1];
+    const previous = this.scrollEvents[this.scrollEvents.length - 2];
+    
+    const deltaTime = current.timestamp - previous.timestamp;
+    const deltaDistance = Math.sqrt(
+      Math.pow(current.deltaX, 2) + Math.pow(current.deltaY, 2)
+    );
+    
+    return deltaTime > 0 ? deltaDistance / deltaTime : 0;
+  }
+
+  private sanitizeKey(key: string): string {
+    // Remove sensitive key information
+    if (key.length === 1 && /[a-zA-Z0-9]/.test(key)) {
+      return 'alphanumeric';
+    } else if (['Enter', 'Space', 'Backspace', 'Tab', 'Shift', 'Control', 'Alt'].includes(key)) {
+      return key;
+    } else {
+      return 'other';
+    }
+  }
+
+  private throttle<T extends (...args: any[]) => any>(func: T, limit: number): T {
+    let inThrottle: boolean;
+    return ((...args: any[]) => {
+      if (!inThrottle) {
+        func.apply(this, args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
       }
-    }
-    
-    return Math.min(100, (switches / this.metrics.focus.length) * 100);
+    }) as T;
   }
 
-  private calculateConfidence(): number {
-    let confidence = 0;
-    
-    // More data points = higher confidence
-    if (this.metrics.mouse.length > 50) confidence += 25;
-    if (this.metrics.keyboard.length > 20) confidence += 25;
-    if (this.metrics.scroll.length > 10) confidence += 20;
-    if (this.metrics.focus.length > 5) confidence += 15;
-    if (this.metrics.touch.length > 10) confidence += 15;
-    
-    return Math.min(100, confidence);
+  private clearEventBuffers(): void {
+    this.mouseEvents = [];
+    this.keystrokeEvents = [];
+    this.scrollEvents = [];
+    this.keystrokeStarts.clear();
+    this.lastKeystrokeTime = 0;
+    this.lastScrollX = 0;
+    this.lastScrollY = 0;
   }
 
-  getMetrics(): BehavioralMetrics {
-    return { ...this.metrics };
+  private startCaptureTimer(): void {
+    this.captureTimer = setTimeout(() => {
+      this.logger.info('Auto-stopping capture after maximum time');
+      this.stopCapture();
+    }, CAPTURE_CONFIG.maxCaptureTime);
   }
+}
 
-  reset(): void {
-    this.metrics = {
-      mouse: [],
-      keyboard: [],
-      touch: [],
-      scroll: [],
-      focus: [],
-      session: {
-        startTime: Date.now(),
-        userAgent: navigator.userAgent,
-        screen: {
-          width: screen.width,
-          height: screen.height,
-          pixelRatio: window.devicePixelRatio
-        },
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        language: navigator.language
-      }
-    };
-    this.previousMouse = null;
-    this.previousKeydown = 0;
-    this.cleanupMouseTrail();
-  }
+// ============================================================================
+// SUPPORTING INTERFACES
+// ============================================================================
+
+export interface CaptureStatus {
+  readonly isCapturing: boolean;
+  readonly captureTimeMs: number;
+  readonly eventCounts: {
+    readonly mouse: number;
+    readonly keystroke: number;
+    readonly scroll: number;
+  };
+  readonly dataQuality: number;
+}
+
+interface MouseAnalysis {
+  readonly averageVelocity: number;
+  readonly averagePressure: number;
+  readonly movementPattern: string;
+  readonly riskScore: number;
+}
+
+interface KeystrokeAnalysis {
+  readonly averageDwellTime: number;
+  readonly rhythmScore: number;
+  readonly typingPattern: string;
+  readonly riskScore: number;
+}
+
+interface ScrollAnalysis {
+  readonly patternScore: number;
+  readonly averageVelocity: number;
+  readonly scrollingPattern: string;
+  readonly riskScore: number;
+}
+
+// ============================================================================
+// FACTORY FUNCTION
+// ============================================================================
+
+export function createBehavioralCapture(): BehavioralCapture {
+  return new BehavioralCapture();
 }

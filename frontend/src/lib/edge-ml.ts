@@ -1,533 +1,789 @@
 /**
- * Edge Machine Learning Service
- * Executa inferência ML diretamente no browser usando TensorFlow.js e WebAssembly
+ * 🧠 FraudDetex - Enterprise-Grade Edge ML Service
+ * High-performance fraud detection with TensorFlow.js
  */
 
 import * as tf from '@tensorflow/tfjs';
-import { BehavioralProfile } from './behavioral-biometrics';
+import type { 
+  MLFeatures, 
+  MLPrediction, 
+  ModelConfig, 
+  BehavioralData,
+  ValidationResult 
+} from '../types';
+import { FraudDetectionError, ErrorCode } from './error-handler';
+import { Logger } from './logger';
+import { validateMLFeatures } from './validation';
 
-export interface FraudDetectionInput {
-  ip?: string;
-  email?: string;
-  amount?: number;
-  country?: string;
-  behavioral?: BehavioralProfile;
-  deviceFingerprint?: string;
-  timestamp?: number;
+// ============================================================================
+// CONSTANTS AND CONFIGURATION
+// ============================================================================
+
+const DEFAULT_MODEL_CONFIG: ModelConfig = {
+  modelUrl: '/models/fraud-detection-v1/model.json',
+  weightsUrl: '/models/fraud-detection-v1/weights.bin',
+  version: '1.0.0',
+  inputShape: [1, 24], // 24 features
+  outputShape: [1, 2], // [legitimate_prob, fraud_prob]
+  threshold: 0.5
+};
+
+const FEATURE_NAMES = [
+  'amount_normalized',
+  'transaction_hour',
+  'transaction_day_of_week',
+  'user_age_days_normalized',
+  'transactions_last_24h_normalized',
+  'velocity_score_normalized',
+  'ip_reputation_score',
+  'geolocation_risk',
+  'is_vpn',
+  'is_tor',
+  'mouse_velocity_avg_normalized',
+  'mouse_click_pressure_normalized',
+  'keystroke_dwell_time_normalized',
+  'typing_rhythm_score',
+  'scroll_pattern_score',
+  'community_threat_score',
+  'device_reputation_score',
+  'email_age_days_normalized',
+  'payment_method_encoded',
+  'merchant_category_encoded',
+  'currency_encoded',
+  'country_code_encoded',
+  'behavioral_risk_score',
+  'historical_pattern_score'
+] as const;
+
+// ============================================================================
+// INTERFACES
+// ============================================================================
+
+interface ModelLoadResult {
+  readonly model: tf.LayersModel;
+  readonly config: ModelConfig;
+  readonly loadTimeMs: number;
+  readonly memoryUsage: number;
 }
 
-export interface FraudDetectionResult {
-  riskScore: number;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  confidence: number;
-  processingTime: number;
-  features: FeatureImportance[];
-  explanation: string[];
-  recommendation: 'APPROVE' | 'REVIEW' | 'BLOCK';
-  modelVersion: string;
-  edgeLocation: string;
+interface PredictionContext {
+  readonly requestId: string;
+  readonly startTime: number;
+  readonly features: MLFeatures;
+  preprocessing: Record<string, number>;
 }
 
-export interface FeatureImportance {
-  name: string;
-  value: number;
-  importance: number;
-  contribution: number;
-  description: string;
-}
-
-export interface ModelMetrics {
-  accuracy: number;
-  precision: number;
-  recall: number;
-  f1Score: number;
-  lastUpdated: Date;
-  totalPredictions: number;
-}
+// ============================================================================
+// EDGE ML SERVICE CLASS
+// ============================================================================
 
 export class EdgeMLService {
   private model: tf.LayersModel | null = null;
-  private isInitialized: boolean = false;
-  private modelVersion: string = '1.0.0';
-  private metrics: ModelMetrics;
-  private wasmModule: any = null;
+  private config: ModelConfig;
+  private isInitialized = false;
+  private loadPromise: Promise<void> | null = null;
+  private readonly logger: Logger;
 
-  constructor() {
-    this.metrics = {
-      accuracy: 0.925,
-      precision: 0.918,
-      recall: 0.932,
-      f1Score: 0.925,
-      lastUpdated: new Date(),
-      totalPredictions: 0
-    };
+  constructor(config?: Partial<ModelConfig>) {
+    this.config = { ...DEFAULT_MODEL_CONFIG, ...config };
+    this.logger = new Logger('EdgeMLService');
   }
 
+  // ============================================================================
+  // PUBLIC METHODS
+  // ============================================================================
+
+  /**
+   * Initialize the ML service and load the model
+   */
   async initialize(): Promise<void> {
-    try {
-      console.log('🚀 Initializing Edge ML Service...');
-      
-      // Set TensorFlow.js backend
-      await tf.setBackend('webgl');
-      await tf.ready();
-
-      // Load pre-trained model
-      await this.loadModel();
-
-      // Initialize WebAssembly module for advanced features
-      await this.initializeWasm();
-
-      this.isInitialized = true;
-      console.log('✅ Edge ML Service initialized successfully');
-    } catch (error) {
-      console.error('❌ Failed to initialize Edge ML Service:', error);
-      throw error;
-    }
-  }
-
-  private async loadModel(): Promise<void> {
-    try {
-      // For demo purposes, create a simple model
-      // In production, this would load from a CDN or be bundled
-      this.model = await this.createDemoModel();
-      console.log('📦 Fraud detection model loaded');
-    } catch (error) {
-      console.error('Failed to load model:', error);
-      throw error;
-    }
-  }
-
-  private async createDemoModel(): Promise<tf.LayersModel> {
-    // Create a simple neural network for demonstration
-    const model = tf.sequential({
-      layers: [
-        tf.layers.dense({
-          inputShape: [20], // 20 input features
-          units: 64,
-          activation: 'relu',
-          name: 'hidden1'
-        }),
-        tf.layers.dropout({ rate: 0.3 }),
-        tf.layers.dense({
-          units: 32,
-          activation: 'relu',
-          name: 'hidden2'
-        }),
-        tf.layers.dropout({ rate: 0.2 }),
-        tf.layers.dense({
-          units: 16,
-          activation: 'relu',
-          name: 'hidden3'
-        }),
-        tf.layers.dense({
-          units: 1,
-          activation: 'sigmoid',
-          name: 'output'
-        })
-      ]
-    });
-
-    // Compile model
-    model.compile({
-      optimizer: tf.train.adam(0.001),
-      loss: 'binaryCrossentropy',
-      metrics: ['accuracy']
-    });
-
-    // Initialize with random weights (in production, load pre-trained weights)
-    return model;
-  }
-
-  private async initializeWasm(): Promise<void> {
-    try {
-      // Placeholder for WebAssembly module initialization
-      // In production, this would load the fraud detection WASM module
-      console.log('🔧 WebAssembly module initialized');
-    } catch (error) {
-      console.warn('WebAssembly initialization failed, continuing without WASM optimizations');
-    }
-  }
-
-  async detectFraud(input: FraudDetectionInput): Promise<FraudDetectionResult> {
-    if (!this.isInitialized || !this.model) {
-      throw new Error('Edge ML Service not initialized');
+    if (this.isInitialized) {
+      return;
     }
 
-    const startTime = Date.now();
+    if (this.loadPromise) {
+      return this.loadPromise;
+    }
+
+    this.loadPromise = this._initializeInternal();
+    return this.loadPromise;
+  }
+
+  /**
+   * Detect fraud for a single transaction
+   */
+  async detectFraud(input: FraudDetectionInput): Promise<MLPrediction> {
+    const startTime = performance.now();
+    const requestId = this._generateRequestId();
 
     try {
-      // Extract and normalize features
-      const features = this.extractFeatures(input);
-      const normalizedFeatures = this.normalizeFeatures(features);
-
-      // Run inference
-      const prediction = await this.runInference(normalizedFeatures);
-      const riskScore = Math.round(prediction * 100);
-
-      // Calculate feature importance
-      const featureImportance = this.calculateFeatureImportance(features, prediction);
-
-      // Generate explanation
-      const explanation = this.generateExplanation(featureImportance, riskScore);
-
-      // Determine risk level and recommendation
-      const riskLevel = this.getRiskLevel(riskScore);
-      const recommendation = this.getRecommendation(riskScore, input);
-
-      const processingTime = Date.now() - startTime;
-
-      // Update metrics
-      this.updateMetrics();
-
-      return {
-        riskScore,
-        riskLevel,
-        confidence: this.calculateConfidence(features),
-        processingTime,
-        features: featureImportance,
-        explanation,
-        recommendation,
-        modelVersion: this.modelVersion,
-        edgeLocation: 'browser'
-      };
-    } catch (error) {
-      console.error('Fraud detection failed:', error);
-      throw error;
-    }
-  }
-
-  private extractFeatures(input: FraudDetectionInput): number[] {
-    const features: number[] = [];
-
-    // IP-based features
-    features.push(this.getIpRiskScore(input.ip));
-    features.push(this.getGeoRiskScore(input.country));
-
-    // Email features
-    features.push(this.getEmailRiskScore(input.email));
-
-    // Amount features
-    features.push(this.getAmountRiskScore(input.amount));
-
-    // Temporal features
-    features.push(this.getTemporalRiskScore(input.timestamp));
-
-    // Behavioral features
-    if (input.behavioral) {
-      features.push(input.behavioral.anomalyScore / 100);
-      features.push(input.behavioral.confidence / 100);
-      features.push(input.behavioral.mouseVelocityStats.mean / 1000);
-      features.push(input.behavioral.keystrokeRhythm.consistency / 100);
-      features.push(input.behavioral.touchPressure.consistencyScore / 100);
-    } else {
-      features.push(0.5, 0.5, 0.5, 0.5, 0.5); // Default values
-    }
-
-    // Device features
-    features.push(this.getDeviceRiskScore(input.deviceFingerprint));
-
-    // Velocity features
-    features.push(this.getVelocityRiskScore(input));
-
-    // Network features
-    features.push(this.getNetworkRiskScore(input));
-
-    // Pattern matching features
-    features.push(this.getPatternRiskScore(input));
-
-    // Machine learning features
-    features.push(this.getMlRiskScore(input));
-
-    // Ensure we have exactly 20 features
-    while (features.length < 20) {
-      features.push(0);
-    }
-
-    return features.slice(0, 20);
-  }
-
-  private normalizeFeatures(features: number[]): number[] {
-    // Simple min-max normalization
-    return features.map(feature => Math.max(0, Math.min(1, feature)));
-  }
-
-  private async runInference(features: number[]): Promise<number> {
-    if (!this.model) throw new Error('Model not loaded');
-
-    const inputTensor = tf.tensor2d([features], [1, features.length]);
-    const prediction = this.model.predict(inputTensor) as tf.Tensor;
-    const result = await prediction.data();
-    
-    // Clean up tensors
-    inputTensor.dispose();
-    prediction.dispose();
-
-    return result[0];
-  }
-
-  private calculateFeatureImportance(features: number[], prediction: number): FeatureImportance[] {
-    const featureNames = [
-      'IP Reputation',
-      'Geo Risk',
-      'Email Risk',
-      'Amount Anomaly',
-      'Temporal Risk',
-      'Behavioral Anomaly',
-      'Behavioral Confidence',
-      'Mouse Velocity',
-      'Keystroke Consistency',
-      'Touch Consistency',
-      'Device Risk',
-      'Velocity Check',
-      'Network Analysis',
-      'Pattern Matching',
-      'ML Risk Score',
-      'Feature 16',
-      'Feature 17',
-      'Feature 18',
-      'Feature 19',
-      'Feature 20'
-    ];
-
-    const descriptions = [
-      'IP address reputation and blacklist status',
-      'Geographic location risk assessment',
-      'Email domain and pattern analysis',
-      'Transaction amount deviation from normal patterns',
-      'Time-based anomaly detection',
-      'Behavioral biometric anomaly score',
-      'Confidence in behavioral analysis',
-      'Mouse movement velocity patterns',
-      'Keystroke timing consistency',
-      'Touch pressure and area consistency',
-      'Device fingerprint risk assessment',
-      'Transaction velocity and frequency',
-      'Network topology and connection analysis',
-      'Known fraud pattern matching',
-      'Machine learning risk assessment'
-    ];
-
-    return features.map((value, index) => ({
-      name: featureNames[index] || `Feature ${index + 1}`,
-      value,
-      importance: this.calculateImportance(value, prediction, index),
-      contribution: value * prediction * 100,
-      description: descriptions[index] || 'Additional risk factor'
-    })).sort((a, b) => b.importance - a.importance);
-  }
-
-  private calculateImportance(featureValue: number, prediction: number, index: number): number {
-    // Simplified feature importance calculation
-    // In production, this would use SHAP values or similar techniques
-    const baseWeights = [
-      0.15, // IP Reputation
-      0.12, // Geo Risk
-      0.14, // Email Risk
-      0.10, // Amount Anomaly
-      0.08, // Temporal Risk
-      0.13, // Behavioral Anomaly
-      0.05, // Behavioral Confidence
-      0.06, // Mouse Velocity
-      0.04, // Keystroke Consistency
-      0.03, // Touch Consistency
-      0.05, // Device Risk
-      0.02, // Velocity Check
-      0.01, // Network Analysis
-      0.01, // Pattern Matching
-      0.01  // ML Risk Score
-    ];
-
-    const weight = baseWeights[index] || 0.01;
-    return featureValue * weight * 100;
-  }
-
-  private generateExplanation(features: FeatureImportance[], riskScore: number): string[] {
-    const explanations: string[] = [];
-
-    if (riskScore >= 80) {
-      explanations.push('🚨 CRITICAL RISK: Multiple high-risk indicators detected');
-    } else if (riskScore >= 60) {
-      explanations.push('⚠️ HIGH RISK: Several suspicious patterns identified');
-    } else if (riskScore >= 40) {
-      explanations.push('🔍 MEDIUM RISK: Some anomalies require investigation');
-    } else {
-      explanations.push('✅ LOW RISK: Normal behavior patterns detected');
-    }
-
-    // Add top contributing factors
-    const topFeatures = features.slice(0, 3);
-    topFeatures.forEach(feature => {
-      if (feature.importance > 10) {
-        explanations.push(`• ${feature.name}: ${feature.importance.toFixed(1)}% impact`);
+      if (!this.isInitialized || !this.model) {
+        throw new FraudDetectionError(
+          'ML service not initialized',
+          ErrorCode.ML_NOT_INITIALIZED
+        );
       }
-    });
 
-    return explanations;
-  }
+      // Validate input
+      const features = this._extractFeatures(input);
+      const validation = validateMLFeatures(features);
+      if (!validation.valid) {
+        throw new FraudDetectionError(
+          `Invalid ML features: ${validation.errors.map(e => e.message).join(', ')}`,
+          ErrorCode.INVALID_INPUT,
+          { timestamp: Date.now() }
+        );
+      }
 
-  private getRiskLevel(riskScore: number): 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' {
-    if (riskScore >= 80) return 'CRITICAL';
-    if (riskScore >= 60) return 'HIGH';
-    if (riskScore >= 40) return 'MEDIUM';
-    return 'LOW';
-  }
+      const context: PredictionContext = {
+        requestId,
+        startTime,
+        features,
+        preprocessing: {}
+      };
 
-  private getRecommendation(riskScore: number, input: FraudDetectionInput): 'APPROVE' | 'REVIEW' | 'BLOCK' {
-    if (riskScore >= 80) return 'BLOCK';
-    if (riskScore >= 50) return 'REVIEW';
-    return 'APPROVE';
-  }
+      // Preprocess features
+      const processedFeatures = await this._preprocessFeatures(features, context);
 
-  private calculateConfidence(features: number[]): number {
-    // Calculate confidence based on feature completeness and model certainty
-    const completeness = features.filter(f => f > 0).length / features.length;
-    const featureVariance = this.calculateVariance(features);
-    const confidence = (completeness * 0.7 + (1 - featureVariance) * 0.3) * 100;
-    return Math.max(60, Math.min(95, confidence));
-  }
+      // Run prediction
+      const prediction = await this._runPrediction(processedFeatures, context);
 
-  private calculateVariance(values: number[]): number {
-    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance = values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / values.length;
-    return Math.sqrt(variance);
-  }
+      // Log successful prediction
+      this.logger.info('Fraud detection completed', {
+        requestId,
+        processingTimeMs: performance.now() - startTime,
+        fraudScore: prediction.fraud_probability,
+        confidence: prediction.confidence
+      });
 
-  // Risk scoring methods
-  private getIpRiskScore(ip?: string): number {
-    if (!ip) return 0.5;
-    
-    // Simplified IP risk scoring
-    // In production, this would check against blacklists, reputation databases, etc.
-    const commonSuspiciousIps = ['192.168.1.1', '10.0.0.1', '127.0.0.1'];
-    if (commonSuspiciousIps.includes(ip)) return 0.2;
-    
-    // Check for Tor exit nodes, VPN ranges, etc.
-    if (ip.startsWith('185.220') || ip.startsWith('199.87')) return 0.8; // Known Tor ranges
-    
-    return Math.random() * 0.3; // Random low risk for demo
-  }
+      return prediction;
 
-  private getGeoRiskScore(country?: string): number {
-    if (!country) return 0.5;
-    
-    const highRiskCountries = ['XX', 'YY', 'ZZ']; // Placeholder
-    const mediumRiskCountries = ['AA', 'BB', 'CC'];
-    
-    if (highRiskCountries.includes(country)) return 0.8;
-    if (mediumRiskCountries.includes(country)) return 0.5;
-    return 0.2;
-  }
-
-  private getEmailRiskScore(email?: string): number {
-    if (!email) return 0.5;
-    
-    // Check for disposable email domains
-    const disposableDomains = ['10minutemail.com', 'tempmail.org', 'guerrillamail.com'];
-    const domain = email.split('@')[1]?.toLowerCase();
-    
-    if (domain && disposableDomains.includes(domain)) return 0.9;
-    
-    // Check for suspicious patterns
-    if (email.includes('+') || email.match(/\d{3,}/)) return 0.6;
-    
-    return 0.2;
-  }
-
-  private getAmountRiskScore(amount?: number): number {
-    if (!amount) return 0.5;
-    
-    // Unusual amounts
-    if (amount > 10000) return 0.8;
-    if (amount < 1) return 0.7;
-    if (amount % 1 === 0 && amount > 1000) return 0.4; // Round numbers
-    
-    return 0.2;
-  }
-
-  private getTemporalRiskScore(timestamp?: number): number {
-    if (!timestamp) return 0.5;
-    
-    const hour = new Date(timestamp).getHours();
-    
-    // Suspicious hours (2-6 AM)
-    if (hour >= 2 && hour <= 6) return 0.6;
-    
-    // Weekend activity
-    const day = new Date(timestamp).getDay();
-    if (day === 0 || day === 6) return 0.3;
-    
-    return 0.2;
-  }
-
-  private getDeviceRiskScore(fingerprint?: string): number {
-    if (!fingerprint) return 0.5;
-    
-    // Check for suspicious device characteristics
-    if (fingerprint.length < 10) return 0.8; // Too simple
-    if (fingerprint.includes('bot') || fingerprint.includes('crawler')) return 0.9;
-    
-    return 0.2;
-  }
-
-  private getVelocityRiskScore(input: FraudDetectionInput): number {
-    // Placeholder for velocity checking
-    // In production, this would check against rate limits, user history, etc.
-    return Math.random() * 0.4;
-  }
-
-  private getNetworkRiskScore(input: FraudDetectionInput): number {
-    // Placeholder for network analysis
-    // In production, this would analyze network patterns, proxy detection, etc.
-    return Math.random() * 0.3;
-  }
-
-  private getPatternRiskScore(input: FraudDetectionInput): number {
-    // Placeholder for pattern matching
-    // In production, this would match against known fraud patterns
-    return Math.random() * 0.3;
-  }
-
-  private getMlRiskScore(input: FraudDetectionInput): number {
-    // Placeholder for additional ML models
-    // In production, this might run ensemble models
-    return Math.random() * 0.4;
-  }
-
-  private updateMetrics(): void {
-    this.metrics.totalPredictions++;
-    // In production, update accuracy based on feedback
-  }
-
-  async updateModel(newModelData: ArrayBuffer): Promise<void> {
-    try {
-      // In production, this would safely update the model
-      console.log('🔄 Updating edge ML model...');
-      this.modelVersion = `${this.modelVersion}.${Date.now()}`;
-      console.log('✅ Model updated successfully');
     } catch (error) {
-      console.error('❌ Failed to update model:', error);
+      const processingTime = performance.now() - startTime;
+      
+      this.logger.error('Fraud detection failed', {
+        requestId,
+        processingTimeMs: processingTime,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        input: this._sanitizeInputForLogging(input)
+      });
+
+      if (error instanceof FraudDetectionError) {
+        throw error;
+      }
+
+      throw new FraudDetectionError(
+        'ML prediction failed',
+        ErrorCode.ML_PREDICTION_FAILED,
+        { timestamp: Date.now() }
+      );
+    }
+  }
+
+  /**
+   * Process multiple transactions in batch
+   */
+  async batchDetectFraud(inputs: FraudDetectionInput[]): Promise<MLPrediction[]> {
+    if (inputs.length === 0) {
+      return [];
+    }
+
+    if (inputs.length > 100) {
+      throw new FraudDetectionError(
+        'Batch size too large (max 100)',
+        ErrorCode.INVALID_INPUT,
+        { timestamp: Date.now() }
+      );
+    }
+
+    const startTime = performance.now();
+    const requestId = this._generateRequestId();
+
+    try {
+      // Process all inputs in parallel for better performance
+      const predictions = await Promise.all(
+        inputs.map(input => this.detectFraud(input))
+      );
+
+      this.logger.info('Batch fraud detection completed', {
+        requestId,
+        batchSize: inputs.length,
+        processingTimeMs: performance.now() - startTime
+      });
+
+      return predictions;
+
+    } catch (error) {
+      this.logger.error('Batch fraud detection failed', {
+        requestId,
+        batchSize: inputs.length,
+        processingTimeMs: performance.now() - startTime,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
       throw error;
     }
   }
 
-  getMetrics(): ModelMetrics {
-    return { ...this.metrics };
-  }
-
-  getModelInfo(): { version: string; size: number; backend: string } {
+  /**
+   * Get model information and statistics
+   */
+  getModelInfo(): ModelInfo {
     return {
-      version: this.modelVersion,
-      size: this.model ? this.model.countParams() : 0,
-      backend: tf.getBackend()
+      isInitialized: this.isInitialized,
+      version: this.config.version,
+      inputShape: this.config.inputShape,
+      outputShape: this.config.outputShape,
+      threshold: this.config.threshold,
+      featureCount: FEATURE_NAMES.length,
+      memoryUsage: this.model ? this._getModelMemoryUsage() : 0
     };
   }
 
-  async dispose(): Promise<void> {
+  /**
+   * Cleanup resources
+   */
+  dispose(): void {
     if (this.model) {
       this.model.dispose();
       this.model = null;
     }
     this.isInitialized = false;
-    console.log('🗑️ Edge ML Service disposed');
+    this.loadPromise = null;
+    
+    this.logger.info('EdgeML service disposed');
   }
+
+  // ============================================================================
+  // PRIVATE METHODS
+  // ============================================================================
+
+  private async _initializeInternal(): Promise<void> {
+    const startTime = performance.now();
+
+    try {
+      this.logger.info('Initializing EdgeML service', {
+        modelUrl: this.config.modelUrl,
+        version: this.config.version
+      });
+
+      // Configure TensorFlow.js
+      await this._configureTensorFlow();
+
+      // Load the model
+      const modelResult = await this._loadModel();
+      this.model = modelResult.model;
+
+      // Warm up the model with a dummy prediction
+      await this._warmUpModel();
+
+      this.isInitialized = true;
+
+      const loadTime = performance.now() - startTime;
+      this.logger.info('EdgeML service initialized successfully', {
+        loadTimeMs: loadTime,
+        modelVersion: this.config.version,
+        memoryUsage: modelResult.memoryUsage
+      });
+
+    } catch (error) {
+      this.logger.error('Failed to initialize EdgeML service', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        config: this.config
+      });
+
+      throw new FraudDetectionError(
+        'Failed to initialize ML service',
+        ErrorCode.ML_INITIALIZATION_FAILED,
+        { timestamp: Date.now() }
+      );
+    }
+  }
+
+  private async _configureTensorFlow(): Promise<void> {
+    try {
+      // Set backend to WebGL for better performance
+      await tf.setBackend('webgl');
+      
+      // Enable production optimizations
+      tf.env().set('WEBGL_PACK', true);
+      tf.env().set('WEBGL_FORCE_F16_TEXTURES', true);
+      
+      // Configure memory management
+      tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', 0.5);
+      
+      this.logger.debug('TensorFlow.js configured', {
+        backend: tf.getBackend(),
+        version: tf.version.tfjs
+      });
+
+    } catch (error) {
+      this.logger.warn('Failed to configure WebGL backend, falling back to CPU', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
+      // Fallback to CPU
+      await tf.setBackend('cpu');
+    }
+  }
+
+  private async _loadModel(): Promise<ModelLoadResult> {
+    const startTime = performance.now();
+
+    try {
+      // Load model from URL or use fallback
+      const model = await this._loadModelFromUrl();
+      
+      // Validate model structure
+      this._validateModel(model);
+
+      const loadTime = performance.now() - startTime;
+      const memoryUsage = this._getModelMemoryUsage();
+
+      return {
+        model,
+        config: this.config,
+        loadTimeMs: loadTime,
+        memoryUsage
+      };
+
+    } catch (error) {
+      this.logger.warn('Failed to load model from URL, using fallback', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      // Use fallback model
+      return this._createFallbackModel();
+    }
+  }
+
+  private async _loadModelFromUrl(): Promise<tf.LayersModel> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+    try {
+      const model = await tf.loadLayersModel(this.config.modelUrl, {
+        fetchFunc: (url, init) => fetch(url, { 
+          ...init, 
+          signal: controller.signal 
+        })
+      });
+
+      clearTimeout(timeoutId);
+      return model;
+
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
+  }
+
+  private _createFallbackModel(): ModelLoadResult {
+    const startTime = performance.now();
+
+    // Create a simple neural network as fallback
+    const model = tf.sequential({
+      layers: [
+        tf.layers.dense({
+          inputShape: [FEATURE_NAMES.length],
+          units: 32,
+          activation: 'relu',
+          name: 'hidden1'
+        }),
+        tf.layers.dropout({ rate: 0.2, name: 'dropout1' }),
+        tf.layers.dense({
+          units: 16,
+          activation: 'relu',
+          name: 'hidden2'
+        }),
+        tf.layers.dense({
+          units: 2,
+          activation: 'softmax',
+          name: 'output'
+        })
+      ]
+    });
+
+    // Initialize with random weights (in production, use pre-trained weights)
+    model.compile({
+      optimizer: 'adam',
+      loss: 'categoricalCrossentropy',
+      metrics: ['accuracy']
+    });
+
+    const loadTime = performance.now() - startTime;
+
+    this.logger.info('Using fallback model', {
+      layers: model.layers.length,
+      parameters: model.countParams(),
+      loadTimeMs: loadTime
+    });
+
+    return {
+      model,
+      config: this.config,
+      loadTimeMs: loadTime,
+      memoryUsage: this._getModelMemoryUsage()
+    };
+  }
+
+  private _validateModel(model: tf.LayersModel): void {
+    const inputShape = model.inputs[0].shape;
+    const outputShape = model.outputs[0].shape;
+
+    if (!inputShape || inputShape.length !== 2 || inputShape[1] !== FEATURE_NAMES.length) {
+      throw new FraudDetectionError(
+        `Invalid model input shape: expected [null, ${FEATURE_NAMES.length}], got ${inputShape}`,
+        ErrorCode.INVALID_MODEL
+      );
+    }
+
+    if (!outputShape || outputShape.length !== 2 || outputShape[1] !== 2) {
+      throw new FraudDetectionError(
+        'Invalid model output shape: expected [null, 2]',
+        ErrorCode.INVALID_MODEL
+      );
+    }
+  }
+
+  private async _warmUpModel(): Promise<void> {
+    if (!this.model) return;
+
+    try {
+      // Create dummy input
+      const dummyInput = tf.zeros([1, FEATURE_NAMES.length]);
+      
+      // Run prediction to warm up
+      const prediction = this.model.predict(dummyInput) as tf.Tensor;
+      
+      // Cleanup
+      dummyInput.dispose();
+      prediction.dispose();
+
+      this.logger.debug('Model warmed up successfully');
+
+    } catch (error) {
+      this.logger.warn('Model warm-up failed', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  private _extractFeatures(input: FraudDetectionInput): MLFeatures {
+    const now = new Date();
+    
+    return {
+      // Transaction features
+      amount: input.amount,
+      transaction_hour: now.getHours(),
+      transaction_day_of_week: now.getDay(),
+      merchant_category: input.merchantCategory || 'general',
+      payment_method: input.paymentMethod || 'credit_card',
+      currency: input.currency || 'USD',
+
+      // User behavior features (with defaults)
+      user_age_days: 30,
+      transactions_last_24h: 1,
+      avg_transaction_amount: input.amount,
+      velocity_score: 0.2,
+
+      // Device/IP features
+      device_fingerprint: input.deviceFingerprint || this._generateFallbackFingerprint(),
+      ip_address: input.ip || '127.0.0.1',
+      ip_reputation_score: 50,
+      geolocation_risk: 0.1,
+      is_vpn: false,
+      is_tor: false,
+      country_code: input.country || 'US',
+
+      // Behavioral biometrics
+      mouse_velocity_avg: input.behavioral?.mouse_velocity_avg,
+      mouse_click_pressure: input.behavioral?.mouse_click_pressure,
+      keystroke_dwell_time: input.behavioral?.keystroke_dwell_time,
+      typing_rhythm_score: input.behavioral?.typing_rhythm_score,
+      scroll_pattern_score: input.behavioral?.scroll_pattern_score,
+
+      // Network features
+      community_threat_score: 0,
+      similar_transaction_patterns: 0,
+      email_age_days: input.email ? 365 : 0,
+      device_reputation_score: 50
+    };
+  }
+
+  private async _preprocessFeatures(
+    features: MLFeatures, 
+    context: PredictionContext
+  ): Promise<Float32Array> {
+    const processed = new Float32Array(FEATURE_NAMES.length);
+
+    // Normalize amount (log scale)
+    processed[0] = Math.log10(Math.max(features.amount, 0.01)) / 6; // Normalize to [0,1]
+    
+    // Time features
+    processed[1] = features.transaction_hour / 24;
+    processed[2] = features.transaction_day_of_week / 7;
+    
+    // User features
+    processed[3] = Math.min(features.user_age_days / 365, 10); // Cap at 10 years
+    processed[4] = Math.min(features.transactions_last_24h / 100, 1); // Cap at 100
+    processed[5] = features.velocity_score;
+    
+    // Network features
+    processed[6] = features.ip_reputation_score / 100;
+    processed[7] = features.geolocation_risk;
+    processed[8] = features.is_vpn ? 1 : 0;
+    processed[9] = features.is_tor ? 1 : 0;
+    
+    // Behavioral features (handle undefined values)
+    processed[10] = this._normalizeBehavioralFeature(features.mouse_velocity_avg, 0, 1000);
+    processed[11] = this._normalizeBehavioralFeature(features.mouse_click_pressure, 0, 1);
+    processed[12] = this._normalizeBehavioralFeature(features.keystroke_dwell_time, 0, 500);
+    processed[13] = features.typing_rhythm_score || 0.5;
+    processed[14] = features.scroll_pattern_score || 0.5;
+    
+    // Community and device features
+    processed[15] = features.community_threat_score / 100;
+    processed[16] = features.device_reputation_score / 100;
+    processed[17] = Math.min(features.email_age_days / 365, 10); // Cap at 10 years
+    
+    // Encoded categorical features
+    processed[18] = this._encodePaymentMethod(features.payment_method);
+    processed[19] = this._encodeMerchantCategory(features.merchant_category);
+    processed[20] = this._encodeCurrency(features.currency);
+    processed[21] = this._encodeCountry(features.country_code);
+    
+    // Derived features
+    processed[22] = this._calculateBehavioralRiskScore(features);
+    processed[23] = this._calculateHistoricalPatternScore(features);
+
+    // Store preprocessing context for debugging
+    context.preprocessing = {
+      normalizedAmount: processed[0],
+      behavioralRisk: processed[22],
+      historicalPattern: processed[23]
+    };
+
+    return processed;
+  }
+
+  private async _runPrediction(
+    features: Float32Array,
+    context: PredictionContext
+  ): Promise<MLPrediction> {
+    if (!this.model) {
+      throw new FraudDetectionError(
+        'Model not loaded',
+        ErrorCode.ML_NOT_INITIALIZED
+      );
+    }
+
+    const inputTensor = tf.tensor2d([Array.from(features)], [1, features.length]);
+    
+    try {
+      const predictionTensor = this.model.predict(inputTensor) as tf.Tensor;
+      const predictionData = await predictionTensor.data();
+      
+      const legitimateProb = predictionData[0];
+      const fraudProb = predictionData[1];
+      
+      // Calculate confidence as the difference between probabilities
+      const confidence = Math.abs(fraudProb - legitimateProb);
+      
+      const processingTime = performance.now() - context.startTime;
+
+      return {
+        fraud_probability: fraudProb,
+        confidence,
+        feature_importance: this._calculateFeatureImportance(features),
+        model_version: this.config.version,
+        processing_time_ms: processingTime
+      };
+
+    } finally {
+      inputTensor.dispose();
+    }
+  }
+
+  private _normalizeBehavioralFeature(
+    value: number | undefined, 
+    min: number, 
+    max: number
+  ): number {
+    if (value === undefined || value === null) {
+      return 0.5; // Default to neutral value
+    }
+    return Math.max(0, Math.min(1, (value - min) / (max - min)));
+  }
+
+  private _encodePaymentMethod(method: string): number {
+    const mapping: Record<string, number> = {
+      'credit_card': 0.2,
+      'debit_card': 0.4,
+      'pix': 0.6,
+      'bank_transfer': 0.8,
+      'digital_wallet': 1.0
+    };
+    return mapping[method] || 0.0;
+  }
+
+  private _encodeMerchantCategory(category: string): number {
+    const mapping: Record<string, number> = {
+      'general': 0.1,
+      'food': 0.2,
+      'electronics': 0.3,
+      'clothing': 0.4,
+      'travel': 0.5,
+      'healthcare': 0.6,
+      'education': 0.7
+    };
+    return mapping[category] || 0.0;
+  }
+
+  private _encodeCurrency(currency: string): number {
+    const mapping: Record<string, number> = {
+      'USD': 0.1,
+      'EUR': 0.2,
+      'BRL': 0.3,
+      'GBP': 0.4
+    };
+    return mapping[currency] || 0.0;
+  }
+
+  private _encodeCountry(country: string): number {
+    const riskMapping: Record<string, number> = {
+      'US': 0.1,
+      'CA': 0.1,
+      'GB': 0.1,
+      'DE': 0.1,
+      'FR': 0.1,
+      'BR': 0.2,
+      'MX': 0.3,
+      'CN': 0.4,
+      'RU': 0.6,
+      'NG': 0.8
+    };
+    return riskMapping[country] || 0.5;
+  }
+
+  private _calculateBehavioralRiskScore(features: MLFeatures): number {
+    const factors = [
+      features.mouse_velocity_avg ? this._normalizeBehavioralFeature(features.mouse_velocity_avg, 0, 1000) : 0.5,
+      features.mouse_click_pressure ? this._normalizeBehavioralFeature(features.mouse_click_pressure, 0, 1) : 0.5,
+      features.keystroke_dwell_time ? this._normalizeBehavioralFeature(features.keystroke_dwell_time, 0, 500) : 0.5,
+      features.typing_rhythm_score || 0.5,
+      features.scroll_pattern_score || 0.5
+    ];
+
+    return factors.reduce((sum, factor) => sum + factor, 0) / factors.length;
+  }
+
+  private _calculateHistoricalPatternScore(features: MLFeatures): number {
+    // Simple scoring based on user behavior patterns
+    const velocityScore = Math.min(features.velocity_score / 100, 1);
+    const ageScore = Math.min(features.user_age_days / 365, 1);
+    const transactionScore = Math.min(features.transactions_last_24h / 50, 1);
+
+    return (velocityScore * 0.4 + ageScore * 0.3 + transactionScore * 0.3);
+  }
+
+  private _calculateFeatureImportance(features: Float32Array): Record<string, number> {
+    const importance: Record<string, number> = {};
+    
+    FEATURE_NAMES.forEach((name, index) => {
+      // Simple importance calculation based on feature value and position
+      const value = features[index];
+      const baseImportance = value * (1 / FEATURE_NAMES.length);
+      
+      // Boost importance for key features
+      let multiplier = 1;
+      if (name.includes('amount')) multiplier = 1.5;
+      if (name.includes('behavioral')) multiplier = 1.3;
+      if (name.includes('threat')) multiplier = 1.4;
+      
+      importance[name] = Math.min(baseImportance * multiplier, 1);
+    });
+
+    return importance;
+  }
+
+  private _getModelMemoryUsage(): number {
+    if (!this.model) return 0;
+    
+    try {
+      return tf.memory().numBytes;
+    } catch {
+      return 0;
+    }
+  }
+
+  private _generateRequestId(): string {
+    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private _generateFallbackFingerprint(): string {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.textBaseline = 'top';
+      ctx.font = '14px Arial';
+      ctx.fillText('FraudDetex fingerprint', 2, 2);
+      return canvas.toDataURL().slice(-16);
+    }
+    return Math.random().toString(36).substr(2, 16);
+  }
+
+  private _sanitizeInputForLogging(input: FraudDetectionInput): Partial<FraudDetectionInput> {
+    return {
+      amount: input.amount,
+      currency: input.currency,
+      paymentMethod: input.paymentMethod,
+      merchantCategory: input.merchantCategory,
+      // Exclude sensitive data like IP, email, device fingerprint
+    };
+  }
+}
+
+// ============================================================================
+// SUPPORTING INTERFACES
+// ============================================================================
+
+export interface FraudDetectionInput {
+  readonly amount: number;
+  readonly currency?: string;
+  readonly paymentMethod?: string;
+  readonly merchantCategory?: string;
+  readonly ip?: string;
+  readonly country?: string;
+  readonly email?: string;
+  readonly deviceFingerprint?: string;
+  readonly timestamp: number;
+  readonly behavioral?: BehavioralData;
+}
+
+export interface ModelInfo {
+  readonly isInitialized: boolean;
+  readonly version: string;
+  readonly inputShape: number[];
+  readonly outputShape: number[];
+  readonly threshold: number;
+  readonly featureCount: number;
+  readonly memoryUsage: number;
+}
+
+// ============================================================================
+// SINGLETON INSTANCE
+// ============================================================================
+
+let instance: EdgeMLService | null = null;
+
+export function getEdgeMLService(): EdgeMLService {
+  if (!instance) {
+    instance = new EdgeMLService();
+  }
+  return instance;
+}
+
+export function createEdgeMLService(config?: Partial<ModelConfig>): EdgeMLService {
+  return new EdgeMLService(config);
 }

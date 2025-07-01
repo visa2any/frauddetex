@@ -8,28 +8,19 @@ import { Progress } from '@/components/ui/progress';
 import { RiskScoreMeter } from './RiskScoreMeter';
 import { ExplainableDecisionViewer } from './ExplainableDecisionViewer';
 import { BehavioralCapture } from '../../lib/behavioral-biometrics';
-import { EdgeMLService } from '../../lib/edge-ml';
-
-interface TransactionData {
-  transaction_id: string;
-  amount: number;
-  user_id: string;
-  currency: string;
-  payment_method: string;
-  merchant_category: string;
-  metadata?: any;
-}
-
-interface FraudResult {
-  fraud_score: number;
-  decision: 'approve' | 'reject' | 'review';
-  confidence: number;
-  explanation: any[];
-  processing_time_ms: number;
-  community_threat_score: number;
-  model_version: string;
-  timestamp: string;
-}
+import { EdgeMLService, FraudDetectionInput } from '../../lib/edge-ml';
+import { Logger } from '../../lib/logger';
+import { FraudDetectionError, ErrorCode, withErrorHandling } from '../../lib/error-handler';
+import { validateTransactionData, validateBehavioralData } from '../../lib/validation';
+import type {
+  TransactionData,
+  FraudResult,
+  BehavioralData,
+  ExplanationFactor,
+  MLPrediction,
+  PaymentMethod,
+  MerchantCategory
+} from '../../types';
 
 interface FraudDetexProps {
   onResult?: (result: FraudResult) => void;
@@ -43,11 +34,12 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
   const [result, setResult] = useState<FraudResult | null>(null);
   const [transactionData, setTransactionData] = useState<TransactionData | null>(null);
   const [progress, setProgress] = useState(0);
-  const [behavioralData, setBehavioralData] = useState<any>(null);
+  const [behavioralData, setBehavioralData] = useState<BehavioralData | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   const biometricsRef = useRef<BehavioralCapture | null>(null);
   const edgeMLRef = useRef<EdgeMLService | null>(null);
+  const logger = useRef<Logger>(new Logger('FraudDetex'));
 
   const analysisSteps = [
     { name: 'Inicializando', description: 'Preparando análise...', duration: 500 },
@@ -57,14 +49,29 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
     { name: 'Decisão Final', description: 'Gerando resultado explicável', duration: 400 }
   ];
 
-  const startAnalysis = useCallback(async (transaction: TransactionData) => {
-    setIsAnalyzing(true);
-    setCurrentStep(0);
-    setProgress(0);
-    setError(null);
-    setResult(null);
-
+  const startAnalysis = useCallback(withErrorHandling(async (transaction: TransactionData) => {
     try {
+      // Validate transaction data
+      const validationResult = validateTransactionData(transaction);
+      if (!validationResult.valid) {
+        throw new FraudDetectionError(
+          `Invalid transaction data: ${validationResult.errors.map(e => e.message).join(', ')}`,
+          ErrorCode.VALIDATION_FAILED
+        );
+      }
+
+      setIsAnalyzing(true);
+      setCurrentStep(0);
+      setProgress(0);
+      setError(null);
+      setResult(null);
+
+      logger.current.info('Starting fraud analysis', {
+        transactionId: transaction.transaction_id,
+        amount: transaction.amount
+      });
+
+      const analysisStartTime = performance.now();
       // Step 1: Initialize
       setCurrentStep(0);
       await sleep(analysisSteps[0].duration);
@@ -74,28 +81,52 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
       setCurrentStep(1);
       let behavioralProfile = behavioralData;
       if (!behavioralProfile && biometricsRef.current) {
-        behavioralProfile = await biometricsRef.current.analyzePatterns();
+        try {
+          behavioralProfile = await biometricsRef.current.analyzePatterns();
+          
+          // Validate behavioral data
+          if (behavioralProfile) {
+            const behavioralValidation = validateBehavioralData(behavioralProfile);
+            if (!behavioralValidation.valid) {
+              logger.current.warn('Invalid behavioral data', {
+                errors: behavioralValidation.errors
+              });
+            }
+          }
+        } catch (biometricError) {
+          logger.current.error('Behavioral biometrics failed', {
+            error: biometricError instanceof Error ? biometricError.message : 'Unknown error'
+          });
+          // Continue without behavioral data
+        }
       }
       await sleep(analysisSteps[1].duration);
       setProgress(40);
 
       // Step 3: Edge ML Analysis
       setCurrentStep(2);
-      let fraudPrediction = null;
+      let fraudPrediction: MLPrediction | null = null;
       if (edgeMLRef.current) {
         try {
           await edgeMLRef.current.initialize();
-          fraudPrediction = await edgeMLRef.current.detectFraud({
+          
+          const mlInput: FraudDetectionInput = {
             amount: transaction.amount,
-            behavioral: behavioralProfile,
+            behavioral: behavioralProfile || undefined,
             country: undefined,
             email: undefined,
             deviceFingerprint: undefined,
             ip: undefined,
             timestamp: Date.now()
-          });
+          };
+          
+          fraudPrediction = await edgeMLRef.current.detectFraud(mlInput);
+          
+          logger.current.mlMetrics('fraud_detection', performance.now() - analysisStartTime, fraudPrediction.confidence);
         } catch (edgeError) {
-          console.warn('Edge ML failed, using fallback:', edgeError);
+          logger.current.warn('Edge ML failed, using fallback', {
+            error: edgeError instanceof Error ? edgeError.message : 'Unknown error'
+          });
           fraudPrediction = generateFallbackPrediction(transaction, behavioralProfile);
         }
       } else {
@@ -121,18 +152,33 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
       await sleep(analysisSteps[4].duration);
       setProgress(100);
 
+      const totalProcessingTime = performance.now() - analysisStartTime;
+      logger.current.fraudEvent('analysis', transaction.transaction_id, {
+        fraudScore: finalResult.fraud_score,
+        decision: finalResult.decision,
+        processingTimeMs: totalProcessingTime
+      });
+
       setResult(finalResult);
       if (onResult) {
         onResult(finalResult);
       }
 
     } catch (analysisError) {
-      console.error('Analysis failed:', analysisError);
-      setError('Falha na análise. Tente novamente.');
+      logger.current.error('Analysis failed', {
+        transactionId: transaction.transaction_id,
+        error: analysisError instanceof Error ? analysisError.message : 'Unknown error'
+      });
+      
+      if (analysisError instanceof FraudDetectionError) {
+        setError(analysisError.userMessage);
+      } else {
+        setError('Falha na análise. Tente novamente.');
+      }
     } finally {
       setIsAnalyzing(false);
     }
-  }, [analysisSteps, behavioralData, checkCommunityThreats, generateFallbackPrediction, generateFinalResult, onResult]);
+  }), [behavioralData, onResult]);
 
   useEffect(() => {
     // Initialize services
@@ -168,7 +214,8 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
         user_id: `user_${Math.random().toString(36).substr(2, 9)}`,
         currency: 'BRL',
         payment_method: 'credit_card',
-        merchant_category: 'general'
+        merchant_category: 'general',
+        timestamp: Date.now()
       };
       
       setTransactionData(sampleTransaction);
@@ -176,7 +223,7 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
     }
   }, [autoStart, behavioralData, isAnalyzing, startAnalysis]);
 
-  const generateFallbackPrediction = (transaction: TransactionData, behavioral: any) => {
+  const generateFallbackPrediction = (transaction: TransactionData, behavioral: BehavioralData | null): MLPrediction => {
     // Simple rule-based prediction for fallback
     let score = 0.2; // Base score
 
@@ -206,7 +253,9 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
         'time_of_day': hour < 6 || hour > 22 ? 0.3 : 0.1,
         'behavioral_score': behavioral?.overall_risk_score || 0.2,
         'payment_method': 0.2
-      }
+      },
+      model_version: 'fallback-1.0.0',
+      processing_time_ms: 50
     };
   };
 
@@ -226,56 +275,67 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
 
   const generateFinalResult = (
     transaction: TransactionData,
-    mlPrediction: any,
+    mlPrediction: MLPrediction | null,
     communityThreat: number,
-    behavioral: any
+    behavioral: BehavioralData | null
   ): FraudResult => {
-    const fraudScore = Math.round((mlPrediction.fraud_probability + communityThreat * 0.3) * 100);
+    const fraudProbability = mlPrediction?.fraud_probability || 0.5;
+    const fraudScore = Math.round((fraudProbability + communityThreat * 0.3) * 100);
     
     let decision: 'approve' | 'reject' | 'review';
     if (fraudScore >= 80) decision = 'reject';
     else if (fraudScore >= 50) decision = 'review';
     else decision = 'approve';
 
-    const explanation = [
+    const explanation: ExplanationFactor[] = [
       {
         factor: 'Valor da Transação',
-        impact: mlPrediction.feature_importance?.amount || 0.2,
+        impact: mlPrediction?.feature_importance?.amount || 0.2,
         description: `R$ ${transaction.amount.toFixed(2)} - ${
           transaction.amount > 1000 ? 'Alto valor' : 'Valor normal'
-        }`
+        }`,
+        category: 'transaction' as const,
+        confidence: 0.9
       },
       {
         factor: 'Biometria Comportamental',
         impact: behavioral?.overall_risk_score || 0.2,
         description: behavioral ? 
           `Score: ${(behavioral.overall_risk_score * 100).toFixed(1)}%` : 
-          'Dados insuficientes'
+          'Dados insuficientes',
+        category: 'behavioral' as const,
+        confidence: behavioral ? 0.8 : 0.3
       },
       {
         factor: 'Inteligência Comunitária',
         impact: communityThreat,
-        description: `Score de ameaça: ${(communityThreat * 100).toFixed(1)}%`
+        description: `Score de ameaça: ${(communityThreat * 100).toFixed(1)}%`,
+        category: 'network' as const,
+        confidence: 0.7
       },
       {
         factor: 'Horário da Transação',
-        impact: mlPrediction.feature_importance?.time_of_day || 0.1,
+        impact: mlPrediction?.feature_importance?.time_of_day || 0.1,
         description: `${new Date().getHours()}h - ${
           new Date().getHours() >= 6 && new Date().getHours() <= 22 ? 
           'Horário comercial' : 'Fora do horário comercial'
-        }`
+        }`,
+        category: 'transaction' as const,
+        confidence: 0.6
       }
     ];
 
     return {
+      transaction_id: transaction.transaction_id,
       fraud_score: fraudScore,
       decision,
-      confidence: mlPrediction.confidence || 0.75,
+      confidence: mlPrediction?.confidence || 0.75,
       explanation,
-      processing_time_ms: Date.now() - (Date.now() - 3000), // Mock processing time
+      processing_time_ms: mlPrediction?.processing_time_ms || 3000,
       community_threat_score: Math.round(communityThreat * 100),
-      model_version: '1.0.0',
-      timestamp: new Date().toISOString()
+      model_version: mlPrediction?.model_version || '1.0.0',
+      timestamp: new Date().toISOString(),
+      cached: false
     };
   };
 
@@ -289,8 +349,9 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
         amount: Math.random() * 2000 + 100,
         user_id: `user_${Math.random().toString(36).substr(2, 9)}`,
         currency: 'BRL',
-        payment_method: ['credit_card', 'debit_card', 'pix'][Math.floor(Math.random() * 3)],
-        merchant_category: ['general', 'food', 'electronics', 'clothing'][Math.floor(Math.random() * 4)]
+        payment_method: ['credit_card', 'debit_card', 'pix'][Math.floor(Math.random() * 3)] as PaymentMethod,
+        merchant_category: ['general', 'food', 'electronics', 'clothing'][Math.floor(Math.random() * 4)] as MerchantCategory,
+        timestamp: Date.now()
       };
       setTransactionData(sampleTransaction);
       startAnalysis(sampleTransaction);
@@ -405,8 +466,6 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
             <CardContent>
               <RiskScoreMeter 
                 score={result.fraud_score} 
-                confidence={result.confidence}
-                decision={result.decision}
               />
               
               <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
@@ -479,9 +538,17 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
       {/* Explainable AI Results */}
       {result && (
         <ExplainableDecisionViewer 
-          decision={result.decision}
-          explanation={result.explanation}
-          confidence={result.confidence}
+          decision={{
+            id: result.transaction_id,
+            timestamp: new Date(result.timestamp),
+            riskScore: result.fraud_score,
+            decision: result.decision === 'approve' ? 'APPROVE' as const : 
+                     result.decision === 'reject' ? 'BLOCK' as const : 'REVIEW' as const,
+            confidence: result.confidence,
+            explanation: result.explanation.map(e => e.description),
+            processingTime: result.processing_time_ms,
+            location: 'São Paulo, BR'
+          }}
         />
       )}
 
