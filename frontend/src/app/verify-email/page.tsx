@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,20 +14,7 @@ export default function VerifyEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  useEffect(() => {
-    const token = searchParams.get('token');
-    const userEmail = localStorage.getItem('user_email') || '';
-    setEmail(userEmail);
-
-    if (token) {
-      verifyEmail(token);
-    } else {
-      setStatus('resend');
-      setMessage('Verifique seu email para completar o cadastro.');
-    }
-  }, [searchParams, router, verifyEmail]);
-
-  const verifyEmail = async (token: string) => {
+  const verifyEmail = useCallback(async (token: string) => {
     try {
       const response = await fetch(`http://localhost:8000/api/v1/auth/verify-email?token=${token}`, {
         method: 'GET',
@@ -62,7 +49,20 @@ export default function VerifyEmailPage() {
       setStatus('error');
       setMessage('Erro ao verificar email. Tente novamente.');
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+    const userEmail = localStorage.getItem('user_email') || '';
+    setEmail(userEmail);
+
+    if (token) {
+      verifyEmail(token);
+    } else {
+      setStatus('resend');
+      setMessage('Verifique seu email para completar o cadastro.');
+    }
+  }, [searchParams, verifyEmail]);
 
   const resendVerification = async () => {
     if (!email) {

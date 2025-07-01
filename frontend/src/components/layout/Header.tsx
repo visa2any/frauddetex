@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 interface HeaderProps {
-  variant?: 'homepage' | 'dashboard' | 'pricing' | 'billing' | 'blog';
+  variant?: 'homepage' | 'dashboard' | 'pricing' | 'billing' | 'blog' | 'solutions';
 }
 
 export default function Header({ variant = 'homepage' }: HeaderProps) {
