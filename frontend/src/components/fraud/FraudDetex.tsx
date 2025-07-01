@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -57,49 +57,7 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
     { name: 'Decisão Final', description: 'Gerando resultado explicável', duration: 400 }
   ];
 
-  useEffect(() => {
-    // Initialize services
-    biometricsRef.current = new BehavioralCapture();
-    edgeMLRef.current = new EdgeMLService();
-
-    // Start collecting behavioral data immediately
-    if (biometricsRef.current) {
-      biometricsRef.current.startCapture();
-      
-      // Collect behavioral data for 3 seconds
-      setTimeout(async () => {
-        if (biometricsRef.current) {
-          const data = await biometricsRef.current.analyzePatterns();
-          setBehavioralData(data);
-        }
-      }, 3000);
-    }
-
-    return () => {
-      if (biometricsRef.current) {
-        biometricsRef.current.stopCapture();
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (autoStart && behavioralData && !isAnalyzing) {
-      // Auto-start with sample transaction
-      const sampleTransaction: TransactionData = {
-        transaction_id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        amount: Math.random() * 1000 + 50,
-        user_id: `user_${Math.random().toString(36).substr(2, 9)}`,
-        currency: 'BRL',
-        payment_method: 'credit_card',
-        merchant_category: 'general'
-      };
-      
-      setTransactionData(sampleTransaction);
-      startAnalysis(sampleTransaction);
-    }
-  }, [autoStart, behavioralData, isAnalyzing, startAnalysis]);
-
-  const startAnalysis = async (transaction: TransactionData) => {
+  const startAnalysis = useCallback(async (transaction: TransactionData) => {
     setIsAnalyzing(true);
     setCurrentStep(0);
     setProgress(0);
@@ -174,7 +132,49 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
     } finally {
       setIsAnalyzing(false);
     }
-  };
+  }, [analysisSteps, behavioralData, checkCommunityThreats, generateFallbackPrediction, generateFinalResult, onResult]);
+
+  useEffect(() => {
+    // Initialize services
+    biometricsRef.current = new BehavioralCapture();
+    edgeMLRef.current = new EdgeMLService();
+
+    // Start collecting behavioral data immediately
+    if (biometricsRef.current) {
+      biometricsRef.current.startCapture();
+      
+      // Collect behavioral data for 3 seconds
+      setTimeout(async () => {
+        if (biometricsRef.current) {
+          const data = await biometricsRef.current.analyzePatterns();
+          setBehavioralData(data);
+        }
+      }, 3000);
+    }
+
+    return () => {
+      if (biometricsRef.current) {
+        biometricsRef.current.stopCapture();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (autoStart && behavioralData && !isAnalyzing) {
+      // Auto-start with sample transaction
+      const sampleTransaction: TransactionData = {
+        transaction_id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        amount: Math.random() * 1000 + 50,
+        user_id: `user_${Math.random().toString(36).substr(2, 9)}`,
+        currency: 'BRL',
+        payment_method: 'credit_card',
+        merchant_category: 'general'
+      };
+      
+      setTransactionData(sampleTransaction);
+      startAnalysis(sampleTransaction);
+    }
+  }, [autoStart, behavioralData, isAnalyzing, startAnalysis]);
 
   const generateFallbackPrediction = (transaction: TransactionData, behavioral: any) => {
     // Simple rule-based prediction for fallback
