@@ -64,7 +64,7 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
 
     // Start collecting behavioral data immediately
     if (biometricsRef.current) {
-      biometricsRef.current.startCollection();
+      biometricsRef.current.startCapture();
       
       // Collect behavioral data for 3 seconds
       setTimeout(() => {
