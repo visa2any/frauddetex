@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import MetricsGrid from '@/components/dashboard/MetricsGrid';
 import RecentTransactions from '@/components/dashboard/RecentTransactions';
+import FraudDetex from '@/components/fraud/FraudDetex';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
@@ -73,6 +74,11 @@ export default function Dashboard() {
         {/* Metrics Grid */}
         <div className="mb-8">
           <MetricsGrid />
+        </div>
+
+        {/* FraudDetex - Real-time Fraud Detection */}
+        <div className="mb-8">
+          <FraudDetex autoStart={false} />
         </div>
 
         {/* Main Content Grid */}
