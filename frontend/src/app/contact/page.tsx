@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,27 +59,6 @@ export default function ContactPage() {
       title: 'Telefone',
       value: '+55 11 1234-5678',
       description: 'Horário comercial: 9h às 18h (UTC-3)'
-    }
-  ];
-
-  const offices = [
-    {
-      city: 'São Paulo - Matriz',
-      address: 'Av. Paulista, 1000 - 15º andar\nBela Vista, São Paulo - SP\nCEP: 01310-100',
-      phone: '+55 11 1234-5678',
-      email: 'sp@frauddetex.com'
-    },
-    {
-      city: 'Rio de Janeiro',
-      address: 'Rua da Assembleia, 100 - 10º andar\nCentro, Rio de Janeiro - RJ\nCEP: 20011-901',
-      phone: '+55 21 1234-5678',
-      email: 'rj@frauddetex.com'
-    },
-    {
-      city: 'Belo Horizonte',
-      address: 'Av. Afonso Pena, 500 - 8º andar\nCentro, Belo Horizonte - MG\nCEP: 30130-001',
-      phone: '+55 31 1234-5678',
-      email: 'bh@frauddetex.com'
     }
   ];
 
@@ -276,141 +254,82 @@ export default function ContactPage() {
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Vendas:</span>
-                      <span className="text-green-400">< 2 horas</span>
+                      <span className="text-green-400">&lt; 2 horas</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Suporte:</span>
-                      <span className="text-blue-400">< 4 horas</span>
+                      <span className="text-green-400">&lt; 4 horas</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Geral:</span>
-                      <span className="text-yellow-400">< 24 horas</span>
+                      <span className="text-yellow-400">&lt; 24 horas</span>
                     </div>
-                  </div>
-                  
-                  <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <p className="text-blue-400 text-sm">
-                      💡 Para suporte urgente, ligue diretamente para nosso telefone.
-                    </p>
                   </div>
                 </CardContent>
               </Card>
             </div>
           </div>
 
-          {/* Offices */}
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-white text-center mb-8">
-              Nossos Escritórios
-            </h2>
-            
+          {/* Offices Section */}
+          <div className="mt-16">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-white mb-4">
+                Nossos Escritórios
+              </h2>
+              <p className="text-gray-300">
+                Estamos presentes em todo o Brasil para atender você de perto
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {offices.map((office, index) => (
-                <Card key={index} className="bg-slate-800/50 border-slate-700">
-                  <CardHeader>
-                    <CardTitle className="text-white text-lg">{office.city}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3 text-sm">
-                      <div>
-                        <h4 className="font-medium text-gray-300 mb-1">📍 Endereço</h4>
-                        <p className="text-gray-400 whitespace-pre-line">{office.address}</p>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-medium text-gray-300 mb-1">📞 Telefone</h4>
-                        <p className="text-red-400">{office.phone}</p>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-medium text-gray-300 mb-1">✉️ Email</h4>
-                        <p className="text-red-400">{office.email}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          {/* FAQ Section */}
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-white text-center mb-8">
-              Perguntas Frequentes
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="bg-slate-800/50 border-slate-700">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-white mb-2">⏱️ Qual o tempo de implementação?</h3>
+                <CardHeader>
+                  <CardTitle className="text-white">São Paulo - Matriz</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
                   <p className="text-gray-300 text-sm">
-                    A integração básica pode ser feita em 1-2 dias. Para implementações 
-                    customizadas, entre 1-4 semanas dependendo da complexidade.
+                    Av. Paulista, 1000 - 15º andar<br />
+                    Bela Vista, São Paulo - SP<br />
+                    CEP: 01310-100
                   </p>
+                  <p className="text-red-400 font-medium">+55 11 1234-5678</p>
+                  <p className="text-gray-400">sp@frauddetex.com</p>
                 </CardContent>
               </Card>
 
               <Card className="bg-slate-800/50 border-slate-700">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-white mb-2">💰 Como funciona a precificação?</h3>
+                <CardHeader>
+                  <CardTitle className="text-white">Rio de Janeiro</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
                   <p className="text-gray-300 text-sm">
-                    Cobramos por transação analisada, com planos mensais flexíveis. 
-                    Entre em contato para uma proposta personalizada.
+                    Rua da Assembleia, 100 - 10º andar<br />
+                    Centro, Rio de Janeiro - RJ<br />
+                    CEP: 20011-901
                   </p>
+                  <p className="text-red-400 font-medium">+55 21 1234-5678</p>
+                  <p className="text-gray-400">rj@frauddetex.com</p>
                 </CardContent>
               </Card>
 
               <Card className="bg-slate-800/50 border-slate-700">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-white mb-2">🔒 Os dados são seguros?</h3>
+                <CardHeader>
+                  <CardTitle className="text-white">Belo Horizonte</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
                   <p className="text-gray-300 text-sm">
-                    Sim! Utilizamos criptografia AES-256, compliance LGPD/GDPR e 
-                    processamento local para máxima segurança.
+                    Av. Afonso Pena, 500 - 8º andar<br />
+                    Centro, Belo Horizonte - MG<br />
+                    CEP: 30130-001
                   </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-slate-800/50 border-slate-700">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-white mb-2">🚀 Posso testar antes?</h3>
-                  <p className="text-gray-300 text-sm">
-                    Absolutamente! Oferecemos demo gratuito e trial de 30 dias 
-                    para você avaliar nossa solução.
-                  </p>
+                  <p className="text-red-400 font-medium">+55 31 1234-5678</p>
+                  <p className="text-gray-400">bh@frauddetex.com</p>
                 </CardContent>
               </Card>
             </div>
-          </div>
-
-          {/* CTA */}
-          <div className="text-center">
-            <Card className="bg-gradient-to-r from-red-500/10 to-orange-500/10 border-red-500/20">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold text-white mb-4">
-                  Pronto para Começar?
-                </h3>
-                <p className="text-gray-300 mb-6">
-                  Agende uma demonstração gratuita e veja como o FraudDetex pode proteger seu negócio.
-                </p>
-                
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button className="bg-red-500 hover:bg-red-600 text-white">
-                    📅 Agendar Demo
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white"
-                  >
-                    📞 Ligar Agora
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }
