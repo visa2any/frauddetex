@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import RiskScoreMeter from './RiskScoreMeter';
-import ExplainableDecisionViewer from './ExplainableDecisionViewer';
-import BehavioralBiometrics from '../../lib/behavioral-biometrics';
-import EdgeML from '../../lib/edge-ml';
+import { RiskScoreMeter } from './RiskScoreMeter';
+import { ExplainableDecisionViewer } from './ExplainableDecisionViewer';
+import { BehavioralCapture } from '../../lib/behavioral-biometrics';
+import { EdgeMLService } from '../../lib/edge-ml';
 
 interface TransactionData {
   transaction_id: string;
@@ -37,7 +37,7 @@ interface FraudDetexProps {
   className?: string;
 }
 
-export default function FraudDetex({ onResult, autoStart = false, className = '' }: FraudDetexProps) {
+export function FraudDetex({ onResult, autoStart = false, className = '' }: FraudDetexProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [result, setResult] = useState<FraudResult | null>(null);
@@ -46,8 +46,8 @@ export default function FraudDetex({ onResult, autoStart = false, className = ''
   const [behavioralData, setBehavioralData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   
-  const biometricsRef = useRef<BehavioralBiometrics | null>(null);
-  const edgeMLRef = useRef<EdgeML | null>(null);
+  const biometricsRef = useRef<BehavioralCapture | null>(null);
+  const edgeMLRef = useRef<EdgeMLService | null>(null);
 
   const analysisSteps = [
     { name: 'Inicializando', description: 'Preparando análise...', duration: 500 },
@@ -59,8 +59,8 @@ export default function FraudDetex({ onResult, autoStart = false, className = ''
 
   useEffect(() => {
     // Initialize services
-    biometricsRef.current = new BehavioralBiometrics();
-    edgeMLRef.current = new EdgeML();
+    biometricsRef.current = new BehavioralCapture();
+    edgeMLRef.current = new EdgeMLService();
 
     // Start collecting behavioral data immediately
     if (biometricsRef.current) {
@@ -77,7 +77,7 @@ export default function FraudDetex({ onResult, autoStart = false, className = ''
 
     return () => {
       if (biometricsRef.current) {
-        biometricsRef.current.stopCollection();
+        biometricsRef.current.stopCapture();
       }
     };
   }, []);
@@ -97,7 +97,7 @@ export default function FraudDetex({ onResult, autoStart = false, className = ''
       setTransactionData(sampleTransaction);
       startAnalysis(sampleTransaction);
     }
-  }, [autoStart, behavioralData, isAnalyzing]);
+  }, [autoStart, behavioralData, isAnalyzing, startAnalysis]);
 
   const startAnalysis = async (transaction: TransactionData) => {
     setIsAnalyzing(true);
@@ -127,13 +127,14 @@ export default function FraudDetex({ onResult, autoStart = false, className = ''
       if (edgeMLRef.current) {
         try {
           await edgeMLRef.current.initialize();
-          fraudPrediction = await edgeMLRef.current.predict({
+          fraudPrediction = await edgeMLRef.current.detectFraud({
             amount: transaction.amount,
-            merchant_category: transaction.merchant_category,
-            payment_method: transaction.payment_method,
-            user_behavioral_score: behavioralProfile?.overall_risk_score || 0.3,
-            transaction_hour: new Date().getHours(),
-            transaction_day_of_week: new Date().getDay()
+            behavioral: behavioralProfile,
+            country: undefined,
+            email: undefined,
+            deviceFingerprint: undefined,
+            ip: undefined,
+            timestamp: Date.now()
           });
         } catch (edgeError) {
           console.warn('Edge ML failed, using fallback:', edgeError);

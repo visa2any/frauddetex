@@ -187,7 +187,7 @@ export default function TermsPage() {
                       <li>• Algoritmos de machine learning</li>
                       <li>• Interface do usuário</li>
                       <li>• Documentação e manuais</li>
-                      <li>• Marca "FraudDetex"</li>
+                      <li>• Marca &quot;FraudDetex&quot;</li>
                       <li>• Tecnologias proprietárias</li>
                     </ul>
                   </div>

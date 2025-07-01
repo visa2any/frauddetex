@@ -1,4 +1,5 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <Header variant="dashboard" />
       <div className="container mx-auto px-4 py-8">
+        {/* Onboarding Banner */}
         {showOnboarding && (
           <div className="mb-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
             <div className="flex items-center justify-between">
@@ -47,11 +49,23 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-        <div className="mb-8"><MetricsGrid /></div>
-        <div className="mb-8"><FraudDetex autoStart={false} /></div>
+        {/* Metrics Grid */}
+        <div className="mb-8">
+          <MetricsGrid />
+        </div>
+        {/* FraudDetex - Real-time Fraud Detection */}
+        <div className="mb-8">
+          <FraudDetex autoStart={false} />
+        </div>
+        {/* Main Content Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-          <div className="xl:col-span-3"><RecentTransactions /></div>
+          {/* Recent Transactions - takes 3 columns */}
+          <div className="xl:col-span-3">
+            <RecentTransactions />
+          </div>
+          {/* Side Panel */}
           <div className="space-y-6">
+            {/* System Status */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2"><span>📡</span><span>Status do Sistema</span></CardTitle>
@@ -63,9 +77,13 @@ export default function Dashboard() {
                   <div className="flex justify-between items-center"><span className="text-sm font-medium">Community Network</span><div className="flex items-center space-x-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div><span className="text-xs text-green-600 font-medium">Operacional</span></div></div>
                   <div className="flex justify-between items-center"><span className="text-sm font-medium">API Gateway</span><div className="flex items-center space-x-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div><span className="text-xs text-green-600 font-medium">Operacional</span></div></div>
                 </div>
-                <div className="mt-4 p-3 bg-green-50 rounded-lg"><p className="text-sm text-green-800 font-medium">✅ Todos os sistemas operacionais</p><p className="text-xs text-green-600 mt-1">Última verificação: agora mesmo</p></div>
+                <div className="mt-4 p-3 bg-green-50 rounded-lg">
+                  <p className="text-sm text-green-800 font-medium">✅ Todos os sistemas operacionais</p>
+                  <p className="text-xs text-green-600 mt-1">Última verificação: agora mesmo</p>
+                </div>
               </CardContent>
             </Card>
+            {/* Recent Alerts */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2"><span>🚨</span><span>Alertas Recentes</span></CardTitle>
@@ -79,6 +97,7 @@ export default function Dashboard() {
                 <Button variant="outline" className="w-full mt-4 border-red-500 text-red-400 hover:bg-red-500 hover:text-white" size="sm">Ver Todos os Alertas</Button>
               </CardContent>
             </Card>
+            {/* Quick Actions */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2"><span>⚡</span><span>Ações Rápidas</span></CardTitle>
@@ -95,6 +114,7 @@ export default function Dashboard() {
             </Card>
           </div>
         </div>
+        {/* Features Overview */}
         <div className="mt-8">
           <Card>
             <CardHeader>

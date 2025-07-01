@@ -284,7 +284,7 @@ export default function PrivacyPage() {
                 
                 <ul className="ml-4 space-y-2 list-disc">
                   <li>Notificaremos por email sobre mudanças substanciais</li>
-                  <li>Atualizaremos a data da "última atualização"</li>
+                  <li>Atualizaremos a data da &quot;última atualização&quot;</li>
                   <li>Manteremos versões anteriores disponíveis por 2 anos</li>
                 </ul>
                 

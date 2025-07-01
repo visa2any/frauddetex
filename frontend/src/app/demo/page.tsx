@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import FraudDetex from '@/components/fraud/FraudDetex';
+import { FraudDetex } from '@/components/fraud/FraudDetex';
+import { RealTimeMetrics } from '@/components/fraud/RealTimeMetrics';
+import { BehavioralInsights } from '@/components/fraud/BehavioralInsights';
+import { ThreatIntelligenceFeed } from '@/components/fraud/ThreatIntelligenceFeed';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
