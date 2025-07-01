@@ -49,7 +49,7 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
     { name: 'Decisão Final', description: 'Gerando resultado explicável', duration: 400 }
   ];
 
-  const startAnalysis = async (transaction: TransactionData) => {
+  const startAnalysis = useCallback(async (transaction: TransactionData) => {
     try {
       // Validate transaction data
       const validationResult = validateTransactionData(transaction);
@@ -178,7 +178,7 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
     } finally {
       setIsAnalyzing(false);
     }
-  };
+  }, [behavioralData, onResult]);
 
   useEffect(() => {
     // Initialize services
@@ -221,7 +221,7 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
       setTransactionData(sampleTransaction);
       startAnalysis(sampleTransaction);
     }
-  }, [autoStart, behavioralData, isAnalyzing]);
+  }, [autoStart, behavioralData, isAnalyzing, startAnalysis]);
 
   const generateFallbackPrediction = (transaction: TransactionData, behavioral: BehavioralData | null): MLPrediction => {
     // Simple rule-based prediction for fallback

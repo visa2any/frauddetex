@@ -19,6 +19,7 @@ interface SignupData {
   email: string;
   password: string;
   company?: string;
+  plan?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
