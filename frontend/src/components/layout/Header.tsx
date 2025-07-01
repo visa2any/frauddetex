@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/auth-context';
+import { useSafeAuth } from '@/hooks/use-safe-auth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -12,7 +12,7 @@ interface HeaderProps {
 
 export default function Header({ variant = 'homepage' }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useSafeAuth();
 
   // Navegação pública (sem Dashboard)
   const publicNavigationItems = [

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/auth-context';
+import { useSafeAuth } from '@/hooks/use-safe-auth';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, isLoading, isAuthenticated } = useAuth();
+  const { login, isLoading, isAuthenticated } = useSafeAuth();
 
   // Redirect if already authenticated
   useEffect(() => {
