@@ -25,9 +25,12 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import MetaTags from '@/components/seo/MetaTags';
 import StructuredData from '@/components/seo/StructuredData';
-import Link from 'next/link';\nimport { TranslationDemo } from '@/components/demo/TranslationDemo';
+import Link from 'next/link';
+import { TranslationDemo } from '@/components/demo/TranslationDemo';
+import { useTranslations } from '@/hooks/use-translations';
 
 export default function HomePage() {
+  const { t } = useTranslations();
   const [isLoading, setIsLoading] = useState(true);
   const [systemStatus, setSystemStatus] = useState({
     edge: 'online',
@@ -126,7 +129,7 @@ export default function HomePage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Inicializando FraudShield Revolutionary...</p>
+          <p className="text-gray-600">{t('common.loading', 'Carregando...')}</p>
         </div>
       </div>
     );
@@ -155,28 +158,29 @@ export default function HomePage() {
           transition={{ duration: 0.8 }}
         >
           <div className="inline-flex items-center bg-red-500/10 border border-red-500/20 rounded-full px-4 py-2 mb-8">
-            <span className="text-red-400 text-sm font-medium">🚨 ALERTA: Fraudes custam R$ 50 bilhões/ano no Brasil</span>
+            <span className="text-red-400 text-sm font-medium">🚨 {t('homepage.hero.alert', 'ALERTA: Fraudes custam R$ 50 bilhões/ano no Brasil')}</span>
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold mb-6 text-white">
-            Pare de <span className="text-red-400">Perder Dinheiro</span>
-            <br />
-            com <span className="text-red-400">Fraudes</span>
+            {t('homepage.hero.title', 'Pare de Perder Dinheiro com Fraudes').split(' ').map((word, i) => 
+              ['Perder', 'Dinheiro', 'Fraudes'].includes(word) ? 
+                <span key={i} className="text-red-400">{word} </span> : 
+                word + ' '
+            )}
           </h1>
           <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
-            O primeiro sistema de proteção anti-fraude com <strong className="text-white">IA explicável</strong> do mundo. 
-            Detecte <strong className="text-green-400">94% das fraudes</strong> em tempo real e economize milhões.
+            {t('homepage.hero.subtitle', 'O primeiro sistema de proteção anti-fraude com IA explicável do mundo. Detecte 94% das fraudes em tempo real e economize milhões.')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="text-lg px-8 py-6 bg-red-500 hover:bg-red-600 text-white" asChild>
               <Link href="/signup">
-                🛡️ Proteger Grátis por 30 Dias
+                🛡️ {t('homepage.hero.cta_primary', 'Proteger Grátis por 30 Dias')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-red-500 text-red-400 hover:bg-red-500 hover:text-white" asChild>
               <Link href="/demo">
-                Ver Demo ao Vivo
+                {t('homepage.hero.cta_secondary', 'Ver Demo ao Vivo')}
               </Link>
             </Button>
           </div>
@@ -193,7 +197,7 @@ export default function HomePage() {
         >
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">Ataques Bloqueados</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-300">{t('homepage.stats.attacks_blocked', 'Ataques Bloqueados')}</CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>

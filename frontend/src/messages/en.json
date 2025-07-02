@@ -128,11 +128,73 @@
     "es": "Español", 
     "fr": "Français"
   },
+  "homepage": {
+    "hero": {
+      "title": "Stop Losing Money to Fraud",
+      "subtitle": "The world's first explainable AI fraud protection system. Detect 94% of fraud in real-time and save millions.",
+      "cta_primary": "Protect Free for 30 Days",
+      "cta_secondary": "View Live Demo",
+      "trial_info": "30-day free trial • No credit card required",
+      "alert": "ALERT: Fraud costs $50 billion/year in Brazil"
+    },
+    "stats": {
+      "detection_rate": "Detection Rate",
+      "false_positives": "False Positives",
+      "response_time": "Response Time", 
+      "transactions": "Protected Transactions",
+      "attacks_blocked": "Attacks Blocked",
+      "average_latency": "Average Latency",
+      "accuracy": "Accuracy",
+      "uptime": "Uptime"
+    },
+    "features": {
+      "title": "Why FraudDetex?",
+      "subtitle": "The only solution that combines advanced AI with complete explainability",
+      "realtime": {
+        "title": "Real-time Detection",
+        "description": "Instant transaction analysis with response in under 50ms"
+      },
+      "explainable": {
+        "title": "Explainable AI",
+        "description": "Understand exactly why each decision was made"
+      },
+      "behavioral": {
+        "title": "Behavioral Biometrics",
+        "description": "Analysis of unique user behavior patterns"
+      },
+      "edge": {
+        "title": "Edge Computing",
+        "description": "Local processing for maximum speed and privacy"
+      },
+      "community": {
+        "title": "Community Intelligence",
+        "description": "Collaborative threat detection network"
+      },
+      "compliance": {
+        "title": "Full Compliance",
+        "description": "GDPR, PCI DSS, SOC 2 and ISO 27001 compliant"
+      }
+    },
+    "cta": {
+      "title": "Start Protecting Your Business Today",
+      "subtitle": "Join thousands of companies that trust FraudDetex",
+      "trial_features": {
+        "free_trial": "30 days free",
+        "no_commitment": "No commitment",
+        "cancel_anytime": "Cancel anytime", 
+        "money_back": "Money-back guarantee"
+      }
+    }
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",
-    "success": "Success",
+    "success": "Success", 
     "back_to_home": "Back to website",
-    "language": "Language"
+    "language": "Language",
+    "get_started": "Get Started",
+    "learn_more": "Learn More",
+    "try_free": "Try Free",
+    "view_demo": "View Demo"
   }
 }

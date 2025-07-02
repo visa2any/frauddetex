@@ -128,11 +128,73 @@
     "es": "Español",
     "fr": "Français"
   },
+  "homepage": {
+    "hero": {
+      "title": "Pare de Perder Dinheiro com Fraudes",
+      "subtitle": "O primeiro sistema de proteção anti-fraude com IA explicável do mundo. Detecte 94% das fraudes em tempo real e economize milhões.",
+      "cta_primary": "Proteger Grátis por 30 Dias",
+      "cta_secondary": "Ver Demo ao Vivo",
+      "trial_info": "Teste grátis por 30 dias • Sem cartão de crédito",
+      "alert": "ALERTA: Fraudes custam R$ 50 bilhões/ano no Brasil"
+    },
+    "stats": {
+      "detection_rate": "Taxa de Detecção",
+      "false_positives": "Falsos Positivos", 
+      "response_time": "Tempo de Resposta",
+      "transactions": "Transações Protegidas",
+      "attacks_blocked": "Ataques Bloqueados",
+      "average_latency": "Latência Média",
+      "accuracy": "Precisão",
+      "uptime": "Tempo Ativo"
+    },
+    "features": {
+      "title": "Por que FraudDetex?",
+      "subtitle": "A única solução que combina IA avançada com explicabilidade total",
+      "realtime": {
+        "title": "Detecção em Tempo Real",
+        "description": "Análise instantânea de transações com resposta em menos de 50ms"
+      },
+      "explainable": {
+        "title": "IA Explicável",
+        "description": "Entenda exatamente por que cada decisão foi tomada"
+      },
+      "behavioral": {
+        "title": "Biometria Comportamental",
+        "description": "Análise de padrões únicos de comportamento do usuário"
+      },
+      "edge": {
+        "title": "Edge Computing",
+        "description": "Processamento local para máxima velocidade e privacidade"
+      },
+      "community": {
+        "title": "Inteligência Comunitária",
+        "description": "Rede colaborativa de detecção de ameaças"
+      },
+      "compliance": {
+        "title": "Compliance Total",
+        "description": "Conformidade com LGPD, PCI DSS, SOC 2 e ISO 27001"
+      }
+    },
+    "cta": {
+      "title": "Comece a Proteger seu Negócio Hoje",
+      "subtitle": "Junte-se a milhares de empresas que confiam no FraudDetex",
+      "trial_features": {
+        "free_trial": "30 dias grátis",
+        "no_commitment": "Sem compromisso", 
+        "cancel_anytime": "Cancelamento a qualquer momento",
+        "money_back": "Garantia de reembolso"
+      }
+    }
+  },
   "common": {
     "loading": "Carregando...",
-    "error": "Erro",
+    "error": "Erro", 
     "success": "Sucesso",
     "back_to_home": "Voltar ao site",
-    "language": "Idioma"
+    "language": "Idioma",
+    "get_started": "Começar",
+    "learn_more": "Saiba Mais",
+    "try_free": "Teste Grátis",
+    "view_demo": "Ver Demo"
   }
 }
