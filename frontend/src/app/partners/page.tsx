@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Handshake, Code, Building, Users, ArrowRight, CheckCircle } from 'lucide-react';
+import { Code, Building, Users, ArrowRight, CheckCircle, Heart } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import MetaTags from '@/components/seo/MetaTags';

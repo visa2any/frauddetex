@@ -249,7 +249,7 @@ export default function SuccessStoriesPage() {
                     <div className="relative mb-4">
                       <Quote className="absolute top-0 left-0 h-4 w-4 text-slate-500" />
                       <blockquote className="italic text-slate-300 pl-6 pr-4">
-                        "{story.quote}"
+                        &ldquo;{story.quote}&rdquo;
                       </blockquote>
                     </div>
 

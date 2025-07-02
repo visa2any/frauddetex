@@ -107,7 +107,7 @@ export default function ClientTestimonialsPage() {
                     </div>
                     <Quote className="h-6 w-6 text-blue-400 mb-2" />
                     <CardTitle className="text-slate-300 text-base font-normal">
-                      "{testimonial.quote}"
+                      &ldquo;{testimonial.quote}&rdquo;
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
