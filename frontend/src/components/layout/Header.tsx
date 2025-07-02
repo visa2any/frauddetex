@@ -280,13 +280,22 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                       <span>Billing</span>
                     </Link>
                     {user?.role === 'admin' && (
-                      <Link
-                        href="/dashboard/admin"
-                        className="flex items-center space-x-2 px-4 py-2 hover:bg-slate-800/50 dark:hover:bg-slate-800/50 hover:bg-slate-100/50 light:hover:bg-slate-100/50 transition-colors text-slate-300 dark:text-slate-300 text-slate-600 light:text-slate-600"
-                      >
-                        <span>👑</span>
-                        <span>Admin Panel</span>
-                      </Link>
+                      <>
+                        <Link
+                          href="/dashboard/admin"
+                          className="flex items-center space-x-2 px-4 py-2 hover:bg-slate-800/50 dark:hover:bg-slate-800/50 hover:bg-slate-100/50 light:hover:bg-slate-100/50 transition-colors text-slate-300 dark:text-slate-300 text-slate-600 light:text-slate-600"
+                        >
+                          <span>👑</span>
+                          <span>Admin Panel</span>
+                        </Link>
+                        <Link
+                          href="/dashboard/admin/enterprise"
+                          className="flex items-center space-x-2 px-4 py-2 hover:bg-slate-800/50 dark:hover:bg-slate-800/50 hover:bg-slate-100/50 light:hover:bg-slate-100/50 transition-colors text-slate-300 dark:text-slate-300 text-slate-600 light:text-slate-600"
+                        >
+                          <span>🏢</span>
+                          <span>Enterprise</span>
+                        </Link>
+                      </>
                     )}
                     <button
                       onClick={logout}
