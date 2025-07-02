@@ -128,7 +128,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
   };
 
   return (
-    <header className="bg-slate-900/95 dark:bg-slate-900/95 bg-white/95 light:bg-white/95 backdrop-blur-sm border-b border-slate-700/50 dark:border-slate-700/50 border-slate-200/50 light:border-slate-200/50 sticky top-0 z-50">
+    <header className="bg-slate-900/95 light:bg-white/95 backdrop-blur-sm border-b border-slate-700/50 light:border-slate-200/50 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -152,7 +152,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                 {item.href ? (
                   <Link
                     href={item.href}
-                    className="flex items-center space-x-2 px-4 py-2 rounded-lg text-slate-300 hover:text-red-400 hover:bg-slate-800/50 transition-all font-medium"
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg text-slate-300 light:text-slate-600 hover:text-red-400 hover:bg-slate-800/50 light:hover:bg-slate-100/50 transition-all font-medium"
                   >
                     <span>{item.icon}</span>
                     <span>{item.label}</span>
@@ -161,7 +161,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                   <button
                     onMouseEnter={() => setActiveDropdown(item.label)}
                     onMouseLeave={() => setActiveDropdown(null)}
-                    className="flex items-center space-x-2 px-4 py-2 rounded-lg text-slate-300 hover:text-red-400 hover:bg-slate-800/50 transition-all font-medium"
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg text-slate-300 light:text-slate-600 hover:text-red-400 hover:bg-slate-800/50 light:hover:bg-slate-100/50 transition-all font-medium"
                   >
                     <span>{item.icon}</span>
                     <span>{item.label}</span>
@@ -174,7 +174,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                 {/* Dropdown Menu */}
                 {item.items && activeDropdown === item.label && (
                   <div 
-                    className="absolute top-full left-0 mt-1 w-80 bg-slate-900/95 backdrop-blur-sm border border-slate-700/50 rounded-xl shadow-2xl py-2"
+                    className="absolute top-full left-0 mt-1 w-80 bg-slate-900/95 light:bg-white/95 backdrop-blur-sm border border-slate-700/50 light:border-slate-200/50 rounded-xl shadow-2xl py-2"
                     onMouseEnter={() => setActiveDropdown(item.label)}
                     onMouseLeave={() => setActiveDropdown(null)}
                   >
@@ -182,15 +182,15 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                       <Link
                         key={subItem.href}
                         href={subItem.href}
-                        className="flex items-start space-x-3 px-4 py-3 hover:bg-slate-800/50 transition-colors group/item"
+                        className="flex items-start space-x-3 px-4 py-3 hover:bg-slate-800/50 light:hover:bg-slate-100/50 transition-colors group/item"
                       >
                         <span className="text-lg">{subItem.icon}</span>
                         <div className="flex-1">
-                          <div className="font-medium text-white group-hover/item:text-red-400 transition-colors">
+                          <div className="font-medium text-white light:text-slate-800 group-hover/item:text-red-400 transition-colors">
                             {subItem.label}
                           </div>
                           {subItem.description && (
-                            <div className="text-sm text-slate-400 mt-1">
+                            <div className="text-sm text-slate-400 light:text-slate-500 mt-1">
                               {subItem.description}
                             </div>
                           )}
@@ -210,24 +210,24 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
               variant="ghost"
               size="sm"
               onClick={toggleTheme}
-              className="p-2 text-slate-400 dark:text-slate-400 text-slate-600 light:text-slate-600 hover:text-slate-200 dark:hover:text-slate-200 hover:text-slate-800 light:hover:text-slate-800 hover:bg-slate-800/50 dark:hover:bg-slate-800/50 hover:bg-slate-100/50 light:hover:bg-slate-100/50"
+              className="p-2 text-slate-400 light:text-slate-600 hover:text-slate-200 light:hover:text-slate-800 hover:bg-slate-800/50 light:hover:bg-slate-100/50"
             >
               {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </Button>
 
             {/* Language Selector - Only Flags */}
             <div className="relative group">
-              <button className="flex items-center px-2 py-2 rounded-lg text-slate-300 dark:text-slate-300 text-slate-600 light:text-slate-600 hover:text-white dark:hover:text-white hover:text-slate-800 light:hover:text-slate-800 hover:bg-slate-800/50 dark:hover:bg-slate-800/50 hover:bg-slate-100/50 light:hover:bg-slate-100/50 transition-all">
+              <button className="flex items-center px-2 py-2 rounded-lg text-slate-300 light:text-slate-600 hover:text-white light:hover:text-slate-800 hover:bg-slate-800/50 light:hover:bg-slate-100/50 transition-all">
                 <span className="text-lg">{languages.find(lang => lang.code === locale)?.flag}</span>
               </button>
               
-              <div className="absolute top-full right-0 mt-1 w-40 bg-slate-900/95 dark:bg-slate-900/95 bg-white/95 light:bg-white/95 backdrop-blur-sm border border-slate-700/50 dark:border-slate-700/50 border-slate-200/50 light:border-slate-200/50 rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <div className="absolute top-full right-0 mt-1 w-40 bg-slate-900/95 light:bg-white/95 backdrop-blur-sm border border-slate-700/50 light:border-slate-200/50 rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                 {languages.map((lang) => (
                   <button
                     key={lang.code}
                     onClick={() => handleLanguageChange(lang.code)}
-                    className={`w-full flex items-center space-x-3 px-3 py-2 hover:bg-slate-800/50 dark:hover:bg-slate-800/50 hover:bg-slate-100/50 light:hover:bg-slate-100/50 transition-colors text-left ${
-                      locale === lang.code ? 'text-red-400' : 'text-slate-300 dark:text-slate-300 text-slate-600 light:text-slate-600'
+                    className={`w-full flex items-center space-x-3 px-3 py-2 hover:bg-slate-800/50 light:hover:bg-slate-100/50 transition-colors text-left ${
+                      locale === lang.code ? 'text-red-400' : 'text-slate-300 light:text-slate-600'
                     }`}
                   >
                     <span>{lang.flag}</span>
@@ -245,7 +245,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
               <div className="flex items-center space-x-2">
                 {/* User Menu Dropdown */}
                 <div className="relative group">
-                  <button className="flex items-center space-x-2 px-3 py-2 rounded-lg text-slate-300 dark:text-slate-300 text-slate-600 light:text-slate-600 hover:text-white dark:hover:text-white hover:text-slate-800 light:hover:text-slate-800 hover:bg-slate-800/50 dark:hover:bg-slate-800/50 hover:bg-slate-100/50 light:hover:bg-slate-100/50 transition-all">
+                  <button className="flex items-center space-x-2 px-3 py-2 rounded-lg text-slate-300 light:text-slate-600 hover:text-white light:hover:text-slate-800 hover:bg-slate-800/50 light:hover:bg-slate-100/50 transition-all">
                     <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-orange-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
                       {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                     </div>
@@ -260,9 +260,9 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                     </svg>
                   </button>
                   
-                  <div className="absolute top-full right-0 mt-1 w-48 bg-slate-900/95 dark:bg-slate-900/95 bg-white/95 light:bg-white/95 backdrop-blur-sm border border-slate-700/50 dark:border-slate-700/50 border-slate-200/50 light:border-slate-200/50 rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                    <div className="px-4 py-2 border-b border-slate-700/50 dark:border-slate-700/50 border-slate-200/50 light:border-slate-200/50">
-                      <div className="font-medium text-slate-200 dark:text-slate-200 text-slate-800 light:text-slate-800">{user?.name || 'User'}</div>
+                  <div className="absolute top-full right-0 mt-1 w-48 bg-slate-900/95 light:bg-white/95 backdrop-blur-sm border border-slate-700/50 light:border-slate-200/50 rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    <div className="px-4 py-2 border-b border-slate-700/50 light:border-slate-200/50">
+                      <div className="font-medium text-slate-200 light:text-slate-800">{user?.name || 'User'}</div>
                       <div className="text-xs text-slate-400 dark:text-slate-400 text-slate-500 light:text-slate-500">{user?.email}</div>
                     </div>
                     <Link
@@ -281,7 +281,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                     </Link>
                     <button
                       onClick={logout}
-                      className="w-full flex items-center space-x-2 px-4 py-2 hover:bg-slate-800/50 dark:hover:bg-slate-800/50 hover:bg-slate-100/50 light:hover:bg-slate-100/50 transition-colors text-left text-slate-300 dark:text-slate-300 text-slate-600 light:text-slate-600"
+                      className="w-full flex items-center space-x-2 px-4 py-2 hover:bg-slate-800/50 light:hover:bg-slate-100/50 transition-colors text-left text-slate-300 light:text-slate-600"
                     >
                       <span>🚪</span>
                       <span>{t('navigation.logout', 'Sair')}</span>
@@ -294,7 +294,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  className="border-red-500 dark:border-red-500 border-red-400 light:border-red-400 text-red-400 dark:text-red-400 text-red-600 light:text-red-600 hover:bg-red-500 hover:text-white" 
+                  className="border-red-500 light:border-red-400 text-red-400 light:text-red-600 hover:bg-red-500 hover:text-white" 
                   asChild
                 >
                   <Link href="/login">{t('navigation.login', 'Login')}</Link>
@@ -312,7 +312,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
 
           {/* Mobile Menu Button */}
           <button
-            className="lg:hidden p-2 text-slate-300 hover:text-white"
+            className="lg:hidden p-2 text-slate-300 light:text-slate-600 hover:text-white light:hover:text-slate-800"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -327,17 +327,17 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden mt-4 py-4 border-t border-slate-700/50 dark:border-slate-700/50 border-slate-200/50 light:border-slate-200/50 max-h-[75vh] overflow-y-auto">
+          <div className="lg:hidden mt-4 py-4 border-t border-slate-700/50 light:border-slate-200/50 max-h-[75vh] overflow-y-auto">
             <nav className="space-y-1">
               {/* Theme + Language Controls Mobile */}
-              <div className="px-2 py-3 border-b border-slate-700/50 dark:border-slate-700/50 border-slate-200/50 light:border-slate-200/50 mb-4">
+              <div className="px-2 py-3 border-b border-slate-700/50 light:border-slate-200/50 mb-4">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="text-sm text-slate-400 dark:text-slate-400 text-slate-500 light:text-slate-500">Configurações</div>
+                  <div className="text-sm text-slate-400 light:text-slate-500">Configurações</div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={toggleTheme}
-                    className="p-2 text-slate-400 dark:text-slate-400 text-slate-600 light:text-slate-600"
+                    className="p-2 text-slate-400 light:text-slate-600"
                   >
                     {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
                   </Button>
@@ -350,7 +350,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                       className={`flex items-center justify-center p-3 rounded-lg transition-colors ${
                         locale === lang.code 
                           ? 'bg-red-500 text-white' 
-                          : 'bg-slate-800/50 dark:bg-slate-800/50 bg-slate-100/50 light:bg-slate-100/50 text-slate-300 dark:text-slate-300 text-slate-600 light:text-slate-600 hover:bg-slate-700/50 dark:hover:bg-slate-700/50 hover:bg-slate-200/50 light:hover:bg-slate-200/50'
+                          : 'bg-slate-800/50 light:bg-slate-100/50 text-slate-300 light:text-slate-600 hover:bg-slate-700/50 light:hover:bg-slate-200/50'"
                       }`}
                     >
                       <span className="text-lg">{lang.flag}</span>
@@ -365,7 +365,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                   {item.href ? (
                     <Link
                       href={item.href}
-                      className="flex items-center space-x-3 text-slate-300 dark:text-slate-300 text-slate-600 light:text-slate-600 hover:text-red-400 transition-colors font-medium px-3 py-3 rounded-lg hover:bg-slate-800/50 dark:hover:bg-slate-800/50 hover:bg-slate-100/50 light:hover:bg-slate-100/50"
+                      className="flex items-center space-x-3 text-slate-300 light:text-slate-600 hover:text-red-400 transition-colors font-medium px-3 py-3 rounded-lg hover:bg-slate-800/50 light:hover:bg-slate-100/50"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <span>{item.icon}</span>
@@ -373,7 +373,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                     </Link>
                   ) : (
                     <>
-                      <div className="flex items-center space-x-3 text-white dark:text-white text-slate-800 light:text-slate-800 font-medium px-3 py-3 bg-slate-800/30 dark:bg-slate-800/30 bg-slate-100/30 light:bg-slate-100/30 rounded-lg mb-2">
+                      <div className="flex items-center space-x-3 text-white light:text-slate-800 font-medium px-3 py-3 bg-slate-800/30 light:bg-slate-100/30 rounded-lg mb-2">
                         <span>{item.icon}</span>
                         <span>{item.label}</span>
                       </div>
@@ -383,7 +383,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                             <Link
                               key={subItem.href}
                               href={subItem.href}
-                              className="flex items-center space-x-3 text-slate-400 dark:text-slate-400 text-slate-500 light:text-slate-500 hover:text-red-400 transition-colors text-sm px-3 py-2 rounded-lg hover:bg-slate-800/30 dark:hover:bg-slate-800/30 hover:bg-slate-100/30 light:hover:bg-slate-100/30"
+                              className="flex items-center space-x-3 text-slate-400 light:text-slate-500 hover:text-red-400 transition-colors text-sm px-3 py-2 rounded-lg hover:bg-slate-800/30 light:hover:bg-slate-100/30"
                               onClick={() => setIsMobileMenuOpen(false)}
                             >
                               <span>{subItem.icon}</span>
@@ -398,16 +398,16 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
               ))}
 
               {/* Actions */}
-              <div className="pt-4 border-t border-slate-700/50 dark:border-slate-700/50 border-slate-200/50 light:border-slate-200/50 space-y-3">
+              <div className="pt-4 border-t border-slate-700/50 light:border-slate-200/50 space-y-3">
                 {isAuthenticated ? (
                   <>
-                    <div className="flex items-center space-x-3 p-3 bg-slate-800/30 dark:bg-slate-800/30 bg-slate-100/30 light:bg-slate-100/30 rounded-lg">
+                    <div className="flex items-center space-x-3 p-3 bg-slate-800/30 light:bg-slate-100/30 rounded-lg">
                       <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold">
                         {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                       </div>
                       <div className="flex-1">
-                        <div className="font-medium text-slate-200 dark:text-slate-200 text-slate-800 light:text-slate-800">{user?.name || 'User'}</div>
-                        <div className="text-xs text-slate-400 dark:text-slate-400 text-slate-500 light:text-slate-500">
+                        <div className="font-medium text-slate-200 light:text-slate-800">{user?.name || 'User'}</div>
+                        <div className="text-xs text-slate-400 light:text-slate-500">
                           {user?.role === 'admin' ? '👑 Admin' : '👤 User'}
                         </div>
                       </div>
@@ -416,7 +416,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                       <Link
                         href="/dashboard"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center justify-center space-x-2 p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-100/50 light:bg-slate-100/50 rounded-lg text-slate-300 dark:text-slate-300 text-slate-600 light:text-slate-600 hover:bg-slate-700/50 dark:hover:bg-slate-700/50 hover:bg-slate-200/50 light:hover:bg-slate-200/50 transition-colors"
+                        className="flex items-center justify-center space-x-2 p-3 bg-slate-800/50 light:bg-slate-100/50 rounded-lg text-slate-300 light:text-slate-600 hover:bg-slate-700/50 light:hover:bg-slate-200/50 transition-colors"
                       >
                         <span>📊</span>
                         <span className="text-sm">Dashboard</span>
@@ -424,7 +424,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                       <Link
                         href="/dashboard/billing"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center justify-center space-x-2 p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-100/50 light:bg-slate-100/50 rounded-lg text-slate-300 dark:text-slate-300 text-slate-600 light:text-slate-600 hover:bg-slate-700/50 dark:hover:bg-slate-700/50 hover:bg-slate-200/50 light:hover:bg-slate-200/50 transition-colors"
+                        className="flex items-center justify-center space-x-2 p-3 bg-slate-800/50 light:bg-slate-100/50 rounded-lg text-slate-300 light:text-slate-600 hover:bg-slate-700/50 light:hover:bg-slate-200/50 transition-colors"
                       >
                         <span>💳</span>
                         <span className="text-sm">Billing</span>
@@ -432,7 +432,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                     </div>
                     <Button 
                       variant="outline"
-                      className="w-full border-slate-500 dark:border-slate-500 border-slate-300 light:border-slate-300 text-slate-400 dark:text-slate-400 text-slate-600 light:text-slate-600 hover:bg-slate-700 dark:hover:bg-slate-700 hover:bg-slate-200 light:hover:bg-slate-200 hover:text-white dark:hover:text-white hover:text-slate-800 light:hover:text-slate-800"
+                      className="w-full border-slate-500 light:border-slate-300 text-slate-400 light:text-slate-600 hover:bg-slate-700 light:hover:bg-slate-200 hover:text-white light:hover:text-slate-800"
                       onClick={() => {
                         setIsMobileMenuOpen(false);
                         logout();
@@ -445,7 +445,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                   <div className="grid grid-cols-1 gap-3">
                     <Button 
                       variant="outline" 
-                      className="w-full border-red-500 dark:border-red-500 border-red-400 light:border-red-400 text-red-400 dark:text-red-400 text-red-600 light:text-red-600 hover:bg-red-500 hover:text-white" 
+                      className="w-full border-red-500 light:border-red-400 text-red-400 light:text-red-600 hover:bg-red-500 hover:text-white" 
                       asChild
                     >
                       <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
