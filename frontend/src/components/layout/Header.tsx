@@ -350,7 +350,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                       className={`flex items-center justify-center p-3 rounded-lg transition-colors ${
                         locale === lang.code 
                           ? 'bg-red-500 text-white' 
-                          : 'bg-slate-800/50 light:bg-slate-100/50 text-slate-300 light:text-slate-600 hover:bg-slate-700/50 light:hover:bg-slate-200/50'"
+                          : 'bg-slate-800/50 light:bg-slate-100/50 text-slate-300 light:text-slate-600 hover:bg-slate-700/50 light:hover:bg-slate-200/50'
                       }`}
                     >
                       <span className="text-lg">{lang.flag}</span>
