@@ -35,6 +35,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // Verificar se está no client-side
+        if (typeof window === 'undefined') {
+          setIsLoading(false);
+          return;
+        }
+        
         const token = localStorage.getItem('auth-token');
         if (!token) {
           setIsLoading(false);
@@ -71,8 +77,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(mockUser);
       } catch (error) {
         console.error('Erro ao verificar autenticação:', error);
-        localStorage.removeItem('auth-token');
-        document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth-token');
+          document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+        }
       } finally {
         setIsLoading(false);
       }
@@ -126,8 +134,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = 'demo-auth-token-' + Date.now();
         
         // Armazenar token
-        localStorage.setItem('auth-token', token);
-        document.cookie = `auth-token=${token}; path=/; max-age=${30 * 24 * 60 * 60}`; // 30 dias
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth-token', token);
+          document.cookie = `auth-token=${token}; path=/; max-age=${30 * 24 * 60 * 60}`; // 30 dias
+        }
 
         setUser(mockUser);
 
@@ -202,8 +212,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const token = 'auth-token-' + Date.now();
       
       // Armazenar token
-      localStorage.setItem('auth-token', token);
-      document.cookie = `auth-token=${token}; path=/; max-age=${30 * 24 * 60 * 60}`;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth-token', token);
+        document.cookie = `auth-token=${token}; path=/; max-age=${30 * 24 * 60 * 60}`;
+      }
 
       setUser(mockUser);
 
@@ -225,8 +237,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('auth-token');
-    document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth-token');
+      document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+    }
     router.push('/');
   };
 

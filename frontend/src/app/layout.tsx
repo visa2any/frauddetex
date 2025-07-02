@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { AuthProvider } from '@/contexts/auth-context'
+import { TranslationProvider } from '@/contexts/translation-context'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -180,7 +182,13 @@ export default function RootLayout({
         <meta name="msapplication-TileColor" content="#EF4444" />
         <meta name="theme-color" content="#EF4444" />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <AuthProvider>
+          <TranslationProvider>
+            {children}
+          </TranslationProvider>
+        </AuthProvider>
+      </body>
     </html>
   )
 }
