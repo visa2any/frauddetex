@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { type Locale } from '@/lib/i18n-simple';
 
 interface HeaderProps {
-  variant?: 'homepage' | 'dashboard' | 'pricing' | 'billing' | 'blog' | 'solutions';
+  variant?: 'homepage' | 'dashboard' | 'pricing' | 'billing' | 'blog' | 'solutions' | 'resources' | 'company';
 }
 
 interface DropdownItem {
