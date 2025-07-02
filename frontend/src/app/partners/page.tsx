@@ -84,7 +84,7 @@ export default function PartnersPage() {
             transition={{ duration: 0.8 }}
           >
             <div className="inline-flex items-center bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-2 mb-8">
-              <Handshake className="h-4 w-4 text-orange-400 mr-2" />
+              <Heart className="h-4 w-4 text-orange-400 mr-2" />
               <span className="text-orange-400 text-sm font-medium">🤝 Parceiros</span>
             </div>
             
