@@ -128,7 +128,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
   };
 
   return (
-    <header className="bg-slate-900/95 light:bg-white/95 backdrop-blur-sm border-b border-slate-700/50 light:border-slate-200/50 sticky top-0 z-50">
+    <header className="bg-slate-900/95 dark:bg-slate-900/95 light:bg-white/95 backdrop-blur-sm border-b border-slate-700/50 light:border-slate-200/50 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
