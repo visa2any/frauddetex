@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useSafeAuth } from '@/hooks/use-safe-auth';
+import { useTranslations } from '@/hooks/use-translations';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { type Locale } from '@/lib/i18n-simple';
 
 interface HeaderProps {
   variant?: 'homepage' | 'dashboard' | 'pricing' | 'billing' | 'blog' | 'solutions';
@@ -27,69 +29,69 @@ interface NavigationItem {
 export default function Header({ variant = 'homepage' }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState('pt');
   const { user, isAuthenticated, logout } = useSafeAuth();
+  const { t, locale, changeLanguage } = useTranslations();
 
   const languages = [
-    { code: 'pt', label: 'Português', flag: '🇧🇷' },
-    { code: 'en', label: 'English', flag: '🇺🇸' },
-    { code: 'es', label: 'Español', flag: '🇪🇸' },
-    { code: 'fr', label: 'Français', flag: '🇫🇷' }
+    { code: 'pt' as Locale, label: t('languages.pt', 'Português'), flag: '🇧🇷' },
+    { code: 'en' as Locale, label: t('languages.en', 'English'), flag: '🇺🇸' },
+    { code: 'es' as Locale, label: t('languages.es', 'Español'), flag: '🇪🇸' },
+    { code: 'fr' as Locale, label: t('languages.fr', 'Français'), flag: '🇫🇷' }
   ];
 
-  // Navegação principal com submenus
+  // Navegação principal com submenus (traduzida)
   const navigationItems: NavigationItem[] = [
     {
-      label: 'Soluções',
+      label: t('navigation.solutions', 'Soluções'),
       icon: '🎯',
       items: [
-        { href: '/fraud-detection', label: 'Detecção de Fraudes', icon: '🛡️', description: 'IA avançada para detectar fraudes em tempo real' },
-        { href: '/behavioral-analysis', label: 'Análise Comportamental', icon: '🧠', description: 'Biometria comportamental e padrões únicos' },
-        { href: '/real-time-monitoring', label: 'Monitoramento 24/7', icon: '⚡', description: 'Proteção contínua e alertas instantâneos' },
-        { href: '/compliance-tools', label: 'Compliance', icon: '✅', description: 'LGPD, PCI DSS, SOC 2 e ISO 27001' },
-        { href: '/api-integration', label: 'Integração API', icon: '🔌', description: 'APIs REST e SDKs para todas as linguagens' },
-        { href: '/custom-rules', label: 'Regras Personalizadas', icon: '⚙️', description: 'Configure regras específicas do seu negócio' }
+        { href: '/fraud-detection', label: t('solutions.fraud_detection.title', 'Detecção de Fraudes'), icon: '🛡️', description: t('solutions.fraud_detection.description', 'IA avançada para detectar fraudes em tempo real') },
+        { href: '/behavioral-analysis', label: t('solutions.behavioral_analysis.title', 'Análise Comportamental'), icon: '🧠', description: t('solutions.behavioral_analysis.description', 'Biometria comportamental e padrões únicos') },
+        { href: '/real-time-monitoring', label: t('solutions.realtime_monitoring.title', 'Monitoramento 24/7'), icon: '⚡', description: t('solutions.realtime_monitoring.description', 'Proteção contínua e alertas instantâneos') },
+        { href: '/compliance-tools', label: t('solutions.compliance.title', 'Compliance'), icon: '✅', description: t('solutions.compliance.description', 'LGPD, PCI DSS, SOC 2 e ISO 27001') },
+        { href: '/api-integration', label: t('solutions.api_integration.title', 'Integração API'), icon: '🔌', description: t('solutions.api_integration.description', 'APIs REST e SDKs para todas as linguagens') },
+        { href: '/custom-rules', label: t('solutions.custom_rules.title', 'Regras Personalizadas'), icon: '⚙️', description: t('solutions.custom_rules.description', 'Configure regras específicas do seu negócio') }
       ]
     },
     {
-      label: 'Produtos',
+      label: t('navigation.products', 'Produtos'),
       icon: '🚀',
       items: [
-        { href: '/pricing', label: 'Preços', icon: '💰', description: 'Planos flexíveis para todos os tamanhos' },
-        { href: '/enterprise', label: 'Enterprise', icon: '🏢', description: 'Soluções personalizadas para grandes empresas' },
-        { href: '/api', label: 'API Reference', icon: '📚', description: 'Documentação completa da API' },
-        { href: '/integrations', label: 'Integrações', icon: '🔗', description: 'Conecte com suas ferramentas favoritas' },
-        { href: '/changelog', label: 'Changelog', icon: '📝', description: 'Novidades e atualizações da plataforma' }
+        { href: '/pricing', label: t('products.pricing.title', 'Preços'), icon: '💰', description: t('products.pricing.description', 'Planos flexíveis para todos os tamanhos') },
+        { href: '/enterprise', label: t('products.enterprise.title', 'Enterprise'), icon: '🏢', description: t('products.enterprise.description', 'Soluções personalizadas para grandes empresas') },
+        { href: '/api', label: t('products.api_docs.title', 'API Reference'), icon: '📚', description: t('products.api_docs.description', 'Documentação completa da API') },
+        { href: '/integrations', label: t('products.integrations.title', 'Integrações'), icon: '🔗', description: t('products.integrations.description', 'Conecte com suas ferramentas favoritas') },
+        { href: '/changelog', label: t('products.changelog.title', 'Changelog'), icon: '📝', description: t('products.changelog.description', 'Novidades e atualizações da plataforma') }
       ]
     },
     {
-      label: 'Recursos',
+      label: t('navigation.resources', 'Recursos'),
       icon: '📚',
       items: [
-        { href: '/docs', label: 'Documentação', icon: '📖', description: 'Guias completos e tutoriais' },
-        { href: '/case-studies', label: 'Estudos de Caso', icon: '📊', description: 'Cases reais de sucesso' },
-        { href: '/blog', label: 'Blog', icon: '✍️', description: 'Artigos sobre fraudes e segurança' },
-        { href: '/webinars', label: 'Webinars', icon: '🎥', description: 'Eventos online e treinamentos' },
-        { href: '/security', label: 'Centro de Segurança', icon: '🔒', description: 'Informações sobre nossa segurança' },
-        { href: '/status', label: 'Status', icon: '📡', description: 'Uptime e status dos serviços' }
+        { href: '/docs', label: t('resources.docs.title', 'Documentação'), icon: '📖', description: t('resources.docs.description', 'Guias completos e tutoriais') },
+        { href: '/case-studies', label: t('resources.case_studies.title', 'Estudos de Caso'), icon: '📊', description: t('resources.case_studies.description', 'Cases reais de sucesso') },
+        { href: '/blog', label: t('resources.blog.title', 'Blog'), icon: '✍️', description: t('resources.blog.description', 'Artigos sobre fraudes e segurança') },
+        { href: '/webinars', label: t('resources.webinars.title', 'Webinars'), icon: '🎥', description: t('resources.webinars.description', 'Eventos online e treinamentos') },
+        { href: '/security', label: t('resources.security.title', 'Centro de Segurança'), icon: '🔒', description: t('resources.security.description', 'Informações sobre nossa segurança') },
+        { href: '/status', label: t('resources.status.title', 'Status'), icon: '📡', description: t('resources.status.description', 'Uptime e status dos serviços') }
       ]
     },
     {
-      label: 'Empresa',
+      label: t('navigation.company', 'Empresa'),
       icon: '🏢',
       items: [
-        { href: '/about', label: 'Sobre Nós', icon: '🌟', description: 'Nossa missão e história' },
-        { href: '/careers', label: 'Carreiras', icon: '💼', description: 'Junte-se ao nosso time' },
-        { href: '/contact', label: 'Contato', icon: '📞', description: 'Fale conosco' },
-        { href: '/press', label: 'Imprensa', icon: '📰', description: 'Kit de imprensa e notícias' },
-        { href: '/partners', label: 'Parceiros', icon: '🤝', description: 'Programa de parceiros' }
+        { href: '/about', label: t('company.about.title', 'Sobre Nós'), icon: '🌟', description: t('company.about.description', 'Nossa missão e história') },
+        { href: '/careers', label: t('company.careers.title', 'Carreiras'), icon: '💼', description: t('company.careers.description', 'Junte-se ao nosso time') },
+        { href: '/contact', label: t('company.contact.title', 'Contato'), icon: '📞', description: t('company.contact.description', 'Fale conosco') },
+        { href: '/press', label: t('company.press.title', 'Imprensa'), icon: '📰', description: t('company.press.description', 'Kit de imprensa e notícias') },
+        { href: '/partners', label: t('company.partners.title', 'Parceiros'), icon: '🤝', description: t('company.partners.description', 'Programa de parceiros') }
       ]
     }
   ];
 
   // Adicionar Dashboard para usuários autenticados
   const dashboardItem: NavigationItem = {
-    label: 'Dashboard',
+    label: t('navigation.dashboard', 'Dashboard'),
     icon: '📊',
     href: '/dashboard'
   };
@@ -98,10 +100,8 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
     ? [dashboardItem, ...navigationItems] 
     : navigationItems;
 
-  const handleLanguageChange = (langCode: string) => {
-    setSelectedLanguage(langCode);
-    // Aqui você implementaria a lógica de mudança de idioma
-    console.log('Language changed to:', langCode);
+  const handleLanguageChange = (langCode: Locale) => {
+    changeLanguage(langCode);
   };
 
   return (
@@ -185,9 +185,9 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
             {/* Language Selector */}
             <div className="relative group">
               <button className="flex items-center space-x-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/50 transition-all">
-                <span>{languages.find(lang => lang.code === selectedLanguage)?.flag}</span>
+                <span>{languages.find(lang => lang.code === locale)?.flag}</span>
                 <span className="text-sm font-medium">
-                  {languages.find(lang => lang.code === selectedLanguage)?.label}
+                  {languages.find(lang => lang.code === locale)?.label}
                 </span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -200,12 +200,12 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                     key={lang.code}
                     onClick={() => handleLanguageChange(lang.code)}
                     className={`w-full flex items-center space-x-3 px-4 py-2 hover:bg-slate-800/50 transition-colors text-left ${
-                      selectedLanguage === lang.code ? 'text-red-400' : 'text-slate-300'
+                      locale === lang.code ? 'text-red-400' : 'text-slate-300'
                     }`}
                   >
                     <span>{lang.flag}</span>
                     <span className="font-medium">{lang.label}</span>
-                    {selectedLanguage === lang.code && (
+                    {locale === lang.code && (
                       <span className="ml-auto text-red-400">✓</span>
                     )}
                   </button>
@@ -218,10 +218,10 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
               <>
                 <div className="flex items-center space-x-3">
                   <div className="text-sm text-slate-300">
-                    Olá, <span className="text-white font-medium">{user?.name}</span>
+                    {t('auth.welcome_back', 'Olá, {name}').replace('{name}', user?.name || '')}
                   </div>
                   <Badge variant="outline" className="border-green-500 text-green-400">
-                    {user?.role === 'admin' ? '👑 Admin' : '👤 User'}
+                    {user?.role === 'admin' ? `👑 ${t('auth.admin_badge', 'Admin')}` : `👤 ${t('auth.user_badge', 'User')}`}
                   </Badge>
                 </div>
                 <Button 
@@ -229,7 +229,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                   className="border-slate-500 text-slate-400 hover:bg-slate-700 hover:text-white"
                   onClick={logout}
                 >
-                  Sair
+                  {t('navigation.logout', 'Sair')}
                 </Button>
               </>
             ) : (
@@ -239,13 +239,13 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                   className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white" 
                   asChild
                 >
-                  <Link href="/login">Login</Link>
+                  <Link href="/login">{t('navigation.login', 'Login')}</Link>
                 </Button>
                 <Button 
                   className="bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white border-0" 
                   asChild
                 >
-                  <Link href="/signup">🛡️ Proteger Agora</Link>
+                  <Link href="/signup">🛡️ {t('navigation.signup', 'Proteger Agora')}</Link>
                 </Button>
               </>
             )}
@@ -272,14 +272,14 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
             <nav className="space-y-2">
               {/* Language Selector Mobile */}
               <div className="px-2 py-3 border-b border-slate-700 mb-4">
-                <div className="text-sm text-slate-400 mb-2">Idioma</div>
+                <div className="text-sm text-slate-400 mb-2">{t('common.language', 'Idioma')}</div>
                 <div className="grid grid-cols-2 gap-2">
                   {languages.map((lang) => (
                     <button
                       key={lang.code}
                       onClick={() => handleLanguageChange(lang.code)}
                       className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                        selectedLanguage === lang.code 
+                        locale === lang.code 
                           ? 'bg-red-500 text-white' 
                           : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                       }`}
@@ -334,9 +334,9 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                 {isAuthenticated ? (
                   <>
                     <div className="text-center text-sm text-slate-300 mb-3">
-                      Olá, <span className="text-white font-medium">{user?.name}</span>
+                      {t('auth.welcome_back', 'Olá, {name}').replace('{name}', user?.name || '')}
                       <Badge variant="outline" className="ml-2 border-green-500 text-green-400">
-                        {user?.role === 'admin' ? '👑 Admin' : '👤 User'}
+                        {user?.role === 'admin' ? `👑 ${t('auth.admin_badge', 'Admin')}` : `👤 ${t('auth.user_badge', 'User')}`}
                       </Badge>
                     </div>
                     <Button 
@@ -347,7 +347,7 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                         logout();
                       }}
                     >
-                      Sair
+                      {t('navigation.logout', 'Sair')}
                     </Button>
                   </>
                 ) : (
@@ -357,13 +357,13 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                       className="w-full border-red-500 text-red-400 hover:bg-red-500 hover:text-white" 
                       asChild
                     >
-                      <Link href="/login">Login</Link>
+                      <Link href="/login">{t('navigation.login', 'Login')}</Link>
                     </Button>
                     <Button 
                       className="w-full bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white border-0" 
                       asChild
                     >
-                      <Link href="/signup">🛡️ Proteger Agora</Link>
+                      <Link href="/signup">🛡️ {t('navigation.signup', 'Proteger Agora')}</Link>
                     </Button>
                   </>
                 )}
