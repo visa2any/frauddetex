@@ -25,7 +25,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import MetaTags from '@/components/seo/MetaTags';
 import StructuredData from '@/components/seo/StructuredData';
-import Link from 'next/link';
+import Link from 'next/link';\nimport { TranslationDemo } from '@/components/demo/TranslationDemo';
 
 export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -400,7 +400,7 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-        <Footer />
+        {/* Translation Demo Section */}\n        <section className=\"py-20 bg-gradient-to-br from-slate-50 to-blue-50\">\n          <div className=\"container mx-auto px-4\">\n            <div className=\"text-center mb-12\">\n              <h2 className=\"text-3xl font-bold text-gray-900 mb-4\">\n                \ud83c\udf0d Sistema Multilingual Ativo\n              </h2>\n              <p className=\"text-xl text-gray-600\">\n                Teste a tradu\u00e7\u00e3o em tempo real - clique nos idiomas abaixo!\n              </p>\n            </div>\n            <TranslationDemo />\n          </div>\n        </section>\n\n        <Footer />
       </div>
     </>
   );
