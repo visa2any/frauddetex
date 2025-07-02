@@ -279,6 +279,15 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                       <span>💳</span>
                       <span>Billing</span>
                     </Link>
+                    {user?.role === 'admin' && (
+                      <Link
+                        href="/dashboard/admin"
+                        className="flex items-center space-x-2 px-4 py-2 hover:bg-slate-800/50 dark:hover:bg-slate-800/50 hover:bg-slate-100/50 light:hover:bg-slate-100/50 transition-colors text-slate-300 dark:text-slate-300 text-slate-600 light:text-slate-600"
+                      >
+                        <span>👑</span>
+                        <span>Admin Panel</span>
+                      </Link>
+                    )}
                     <button
                       onClick={logout}
                       className="w-full flex items-center space-x-2 px-4 py-2 hover:bg-slate-800/50 light:hover:bg-slate-100/50 transition-colors text-left text-slate-300 light:text-slate-600"
@@ -429,6 +438,16 @@ export default function Header({ variant = 'homepage' }: HeaderProps) {
                         <span>💳</span>
                         <span className="text-sm">Billing</span>
                       </Link>
+                      {user?.role === 'admin' && (
+                        <Link
+                          href="/dashboard/admin"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="flex items-center justify-center space-x-2 p-3 bg-slate-800/50 light:bg-slate-100/50 rounded-lg text-slate-300 light:text-slate-600 hover:bg-slate-700/50 light:hover:bg-slate-200/50 transition-colors"
+                        >
+                          <span>👑</span>
+                          <span className="text-sm">Admin Panel</span>
+                        </Link>
+                      )}
                     </div>
                     <Button 
                       variant="outline"
