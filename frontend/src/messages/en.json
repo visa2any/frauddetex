@@ -130,7 +130,10 @@
   },
   "homepage": {
     "hero": {
-      "title": "Stop Losing Money to Fraud",
+      "title": "Stop",
+      "title_highlight1": "Losing Money",
+      "title_with": "to",
+      "title_highlight2": "Fraud",
       "subtitle": "The world's first explainable AI fraud protection system. Detect 94% of fraud in real-time and save millions.",
       "cta_primary": "Protect Free for 30 Days",
       "cta_secondary": "View Live Demo",

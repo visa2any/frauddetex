@@ -162,11 +162,9 @@ export default function HomePage() {
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold mb-6 text-white">
-            {t('homepage.hero.title', 'Pare de Perder Dinheiro com Fraudes').split(' ').map((word, i) => 
-              ['Perder', 'Dinheiro', 'Fraudes'].includes(word) ? 
-                <span key={i} className="text-red-400">{word} </span> : 
-                word + ' '
-            )}
+            {t('homepage.hero.title', 'Pare de')} <span className="text-red-400">{t('homepage.hero.title_highlight1', 'Perder Dinheiro')}</span>
+            <br />
+            {t('homepage.hero.title_with', 'com')} <span className="text-red-400">{t('homepage.hero.title_highlight2', 'Fraudes')}</span>
           </h1>
           <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
             {t('homepage.hero.subtitle', 'O primeiro sistema de proteção anti-fraude com IA explicável do mundo. Detecte 94% das fraudes em tempo real e economize milhões.')}

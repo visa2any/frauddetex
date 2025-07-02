@@ -130,7 +130,10 @@
   },
   "homepage": {
     "hero": {
-      "title": "Pare de Perder Dinheiro com Fraudes",
+      "title": "Pare de",
+      "title_highlight1": "Perder Dinheiro",
+      "title_with": "com",
+      "title_highlight2": "Fraudes",
       "subtitle": "O primeiro sistema de proteção anti-fraude com IA explicável do mundo. Detecte 94% das fraudes em tempo real e economize milhões.",
       "cta_primary": "Proteger Grátis por 30 Dias",
       "cta_secondary": "Ver Demo ao Vivo",
