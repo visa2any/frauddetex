@@ -250,8 +250,8 @@ export default function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="text-2xl mb-2">📧</div>
-              <h4 className="font-semibold text-white mb-2">Suporte</h4>
-              <p className="text-red-400 font-medium">support@frauddetex.com</p>
+              <h4 className="font-semibold text-white mb-2">Contato</h4>
+              <p className="text-red-400 font-medium">info@frauddetex.com</p>
               <p className="text-slate-400 text-sm">Resposta em 2h</p>
             </div>
             <div className="text-center">

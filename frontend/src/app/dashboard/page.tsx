@@ -12,17 +12,34 @@ import Footer from '@/components/layout/Footer';
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    const onboardingCompleted = localStorage.getItem('fraudshield_onboarding_completed');
-    if (userData) setUser(JSON.parse(userData));
-    if (!onboardingCompleted) setShowOnboarding(true);
+    setIsClient(true);
+    if (typeof window !== 'undefined') {
+      const userData = localStorage.getItem('user');
+      const onboardingCompleted = localStorage.getItem('fraudshield_onboarding_completed');
+      if (userData) setUser(JSON.parse(userData));
+      if (!onboardingCompleted) setShowOnboarding(true);
+    }
   }, []);
 
   const handleStartOnboarding = () => {
-    window.location.href = '/onboarding';
+    if (typeof window !== 'undefined') {
+      window.location.href = '/onboarding';
+    }
   };
+
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-white">Carregando dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">

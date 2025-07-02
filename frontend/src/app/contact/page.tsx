@@ -39,19 +39,19 @@ export default function ContactPage() {
     {
       icon: '📧',
       title: 'Email Geral',
-      value: 'contato@frauddetex.com',
+      value: 'info@frauddetex.com',
       description: 'Para dúvidas gerais e informações'
     },
     {
       icon: '💼',
       title: 'Vendas',
-      value: 'vendas@frauddetex.com',
+      value: 'info@frauddetex.com',
       description: 'Para demonstrações e propostas comerciais'
     },
     {
       icon: '🛠️',
       title: 'Suporte Técnico',
-      value: 'suporte@frauddetex.com',
+      value: 'info@frauddetex.com',
       description: 'Para suporte técnico e dúvidas de implementação'
     },
     {

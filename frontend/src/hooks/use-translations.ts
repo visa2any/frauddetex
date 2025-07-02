@@ -7,6 +7,7 @@ export function useTranslations(initialLocale: Locale = defaultLocale) {
   const [locale, setLocale] = useState<Locale>(initialLocale);
   const [translations, setTranslations] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     const loadTranslations = async () => {
@@ -36,8 +37,9 @@ export function useTranslations(initialLocale: Locale = defaultLocale) {
     }
   }, [locale]);
 
-  // Load language preference from localStorage
+  // Load language preference from localStorage and set client state
   useEffect(() => {
+    setIsClient(true);
     if (typeof window !== 'undefined') {
       const savedLocale = localStorage.getItem('preferred-language') as Locale;
       if (savedLocale && ['pt', 'en', 'es', 'fr'].includes(savedLocale)) {
@@ -69,6 +71,7 @@ export function useTranslations(initialLocale: Locale = defaultLocale) {
     locale,
     translations,
     isLoading,
+    isClient,
     t,
     changeLanguage
   };
