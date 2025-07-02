@@ -78,7 +78,7 @@ export default function HomePage() {
       icon: Zap,
       title: 'Detecção Instantânea',
       description: 'Edge computing com resposta em <50ms para bloquear fraudes em tempo real',
-      status: '⚡ Ultrarrrápido',
+      status: 'Ultrarapido',
       color: 'bg-yellow-500/20 border-yellow-500/40',
       threat: 'Bloqueia ataques antes que causem danos'
     },
@@ -138,9 +138,9 @@ export default function HomePage() {
   return (
     <>
       <MetaTags 
-        title="FraudDetex - Proteção Anti-Fraude com IA Explicável | Detecção em Tempo Real"
-        description="O primeiro sistema de proteção anti-fraude com IA explicável do mundo. Detecte 94% das fraudes em tempo real, economize milhões e proteja seu negócio."
-        keywords="detecção fraude, anti-fraude, IA explicável, machine learning, biometria comportamental, edge computing, proteção pagamentos, fraud detection, cybersecurity, fintech security"
+        title="FraudDetex - Fraud Detection with Explainable AI"
+        description="Advanced fraud detection system with explainable AI. Detect fraud in real-time and protect your business."
+        keywords="fraud detection, anti-fraud, explainable AI, machine learning, cybersecurity"
         url="https://frauddetex.com"
         type="website"
       />
@@ -200,35 +200,35 @@ export default function HomePage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-400">{realtimeStats.requestsProcessed.toLocaleString()}</div>
-              <p className="text-xs text-slate-400">Últimas 24h protegidas</p>
+              <p className="text-xs text-slate-400">{t('homepage.stats.last_24h', 'Últimas 24h protegidas')}</p>
             </CardContent>
           </Card>
 
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">Tempo de Resposta</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-300">{t('homepage.stats.response_time', 'Tempo de Resposta')}</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-400">{realtimeStats.averageLatency}ms</div>
-              <p className="text-xs text-slate-400">Detecção instantânea</p>
+              <p className="text-xs text-slate-400">{t('homepage.stats.instant_detection', 'Detecção instantânea')}</p>
             </CardContent>
           </Card>
 
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">Economia Gerada</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-300">{t('homepage.stats.savings_generated', 'Economia Gerada')}</CardTitle>
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-400">R$ {(realtimeStats.fraudDetected * 4500).toLocaleString()}</div>
-              <p className="text-xs text-slate-400">Fraudes evitadas hoje</p>
+              <p className="text-xs text-slate-400">{t('homepage.stats.fraud_prevented_today', 'Fraudes evitadas hoje')}</p>
             </CardContent>
           </Card>
 
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">Taxa de Proteção</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-300">{t('homepage.stats.protection_rate', 'Taxa de Proteção')}</CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -402,7 +402,22 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-        {/* Translation Demo Section */}\n        <section className=\"py-20 bg-gradient-to-br from-slate-50 to-blue-50\">\n          <div className=\"container mx-auto px-4\">\n            <div className=\"text-center mb-12\">\n              <h2 className=\"text-3xl font-bold text-gray-900 mb-4\">\n                \ud83c\udf0d Sistema Multilingual Ativo\n              </h2>\n              <p className=\"text-xl text-gray-600\">\n                Teste a tradu\u00e7\u00e3o em tempo real - clique nos idiomas abaixo!\n              </p>\n            </div>\n            <TranslationDemo />\n          </div>\n        </section>\n\n        <Footer />
+        {/* Translation Demo Section */}
+        <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                🌍 Sistema Multilingual Ativo
+              </h2>
+              <p className="text-xl text-gray-600">
+                Teste a tradução em tempo real - clique nos idiomas abaixo!
+              </p>
+            </div>
+            <TranslationDemo />
+          </div>
+        </section>
+
+        <Footer />
       </div>
     </>
   );

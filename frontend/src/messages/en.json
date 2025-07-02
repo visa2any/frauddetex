@@ -148,7 +148,12 @@
       "attacks_blocked": "Attacks Blocked",
       "average_latency": "Average Latency",
       "accuracy": "Accuracy",
-      "uptime": "Uptime"
+      "uptime": "Uptime",
+      "last_24h": "Last 24h protected",
+      "instant_detection": "Instant detection",
+      "savings_generated": "Savings Generated",
+      "fraud_prevented_today": "Fraud prevented today",
+      "protection_rate": "Protection Rate"
     },
     "features": {
       "title": "Why FraudDetex?",

@@ -148,7 +148,12 @@
       "attacks_blocked": "Ataques Bloqueados",
       "average_latency": "Latência Média",
       "accuracy": "Precisão",
-      "uptime": "Tempo Ativo"
+      "uptime": "Tempo Ativo",
+      "last_24h": "Últimas 24h protegidas",
+      "instant_detection": "Detecção instantânea",
+      "savings_generated": "Economia Gerada",
+      "fraud_prevented_today": "Fraudes evitadas hoje",
+      "protection_rate": "Taxa de Proteção"
     },
     "features": {
       "title": "Por que FraudDetex?",
