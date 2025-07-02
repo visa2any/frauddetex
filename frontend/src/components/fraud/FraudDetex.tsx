@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -41,13 +41,29 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
   const edgeMLRef = useRef<EdgeMLService | null>(null);
   const logger = useRef<Logger>(new Logger('FraudDetex'));
 
-  const analysisSteps = [
+  const analysisSteps = useMemo(() => [
     { name: 'Inicializando', description: 'Preparando análise...', duration: 500 },
     { name: 'Biometria Comportamental', description: 'Coletando padrões de comportamento', duration: 1000 },
     { name: 'Análise Edge ML', description: 'Processando com IA local', duration: 800 },
     { name: 'Inteligência Comunitária', description: 'Consultando rede P2P', duration: 600 },
     { name: 'Decisão Final', description: 'Gerando resultado explicável', duration: 400 }
-  ];
+  ], []);
+
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const checkCommunityThreats = useCallback(async (transaction: TransactionData): Promise<number> => {
+    // Simulate community intelligence check
+    await sleep(300);
+    
+    // Mock community threat scoring
+    const factors = [
+      transaction.amount > 2000 ? 0.3 : 0.1,
+      Math.random() * 0.2, // Random network intelligence
+      transaction.payment_method === 'credit_card' ? 0.1 : 0.2
+    ];
+    
+    return Math.min(factors.reduce((a, b) => a + b, 0), 1.0);
+  }, []);
 
   const startAnalysis = useCallback(async (transaction: TransactionData) => {
     try {
@@ -259,20 +275,6 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
     };
   };
 
-  const checkCommunityThreats = useCallback(async (transaction: TransactionData): Promise<number> => {
-    // Simulate community intelligence check
-    await sleep(300);
-    
-    // Mock community threat scoring
-    const factors = [
-      transaction.amount > 2000 ? 0.3 : 0.1,
-      Math.random() * 0.2, // Random network intelligence
-      transaction.payment_method === 'credit_card' ? 0.1 : 0.2
-    ];
-    
-    return Math.min(factors.reduce((a, b) => a + b, 0), 1.0);
-  }, []);
-
   const generateFinalResult = (
     transaction: TransactionData,
     mlPrediction: MLPrediction | null,
@@ -338,8 +340,6 @@ export function FraudDetex({ onResult, autoStart = false, className = '' }: Frau
       cached: false
     };
   };
-
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   const handleManualAnalysis = () => {
     if (!transactionData) {
