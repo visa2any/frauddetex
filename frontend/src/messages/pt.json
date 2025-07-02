@@ -140,6 +140,83 @@
       "trial_info": "Teste grátis por 30 dias • Sem cartão de crédito",
       "alert": "ALERTA: Fraudes custam R$ 50 bilhões/ano no Brasil"
     },
+    "features_section": {
+      "badge": "Tecnologia Militar",
+      "title": "Arsenal de Proteção Anti-Fraude",
+      "subtitle": "Cada componente é uma camada de segurança impenetrável contra fraudadores."
+    },
+    "features": {
+      "instant_detection": {
+        "title": "Detecção Instantânea",
+        "description": "Edge computing com resposta em <50ms para bloquear fraudes em tempo real",
+        "status": "Ultrarapido",
+        "threat": "Bloqueia ataques antes que causem danos"
+      },
+      "behavioral_biometrics": {
+        "title": "Biometria Comportamental",
+        "description": "Análise de padrões de mouse, teclado e navegação para identificar fraudadores",
+        "status": "Inteligência",
+        "threat": "Detecta bots e ataques automatizados"
+      },
+      "collective_intelligence": {
+        "title": "Inteligência Coletiva",
+        "description": "Rede colaborativa que compartilha ameaças entre empresas anonimamente",
+        "status": "Conectado",
+        "threat": "Proteção contra ameaças globais"
+      },
+      "explainable_ai": {
+        "title": "IA Explicável",
+        "description": "Cada decisão é transparente e auditável para compliance total",
+        "status": "Transparente",
+        "threat": "Justifica todas as decisões para auditores"
+      },
+      "graph_networks": {
+        "title": "Redes Neurais de Grafos",
+        "description": "Detecta esquemas complexos e fraud rings com análise de relacionamentos",
+        "status": "Avançado",
+        "threat": "Desmascara organizações criminosas"
+      },
+      "military_privacy": {
+        "title": "Privacidade Militar",
+        "description": "Arquitetura zero-knowledge que protege dados sensíveis",
+        "status": "Blindado",
+        "threat": "Resistência a ataques de estado"
+      }
+    },
+    "threat_intelligence": {
+      "badge": "Monitoramento Ativo",
+      "title": "Centro de Comando Anti-Fraude",
+      "subtitle": "Todos os sistemas de proteção operando em máxima capacidade",
+      "edge_defense": "Edge Defense",
+      "edge_status": "99.99% Blindagem",
+      "edge_response": "Resposta instantânea",
+      "global_network": "Rede Global",
+      "sentinels": "1,247 Sentinelas",
+      "global_coverage": "Cobertura mundial",
+      "ai_vigilant": "IA Vigilante",
+      "continuous_learning": "Aprendizado Contínuo",
+      "always_evolving": "Evoluindo sempre",
+      "threats_neutralized": "Ameaças Neutralizadas",
+      "last_24h": "Últimas 24h",
+      "total_security": "Segurança total"
+    },
+    "urgency_cta": {
+      "emoji": "⚠️",
+      "title_line1": "Cada Minuto Sem Proteção =",
+      "title_highlight": "Dinheiro Perdido",
+      "subtitle": "Enquanto você lê isso, fraudadores estão atacando sistemas desprotegidos. Não seja a próxima vítima - proteja seu negócio agora.",
+      "stat1_value": "R$ 137.000",
+      "stat1_label": "Perdido por hora no Brasil",
+      "stat2_value": "2.3 seg",
+      "stat2_label": "Nova tentativa de fraude",
+      "stat3_value": "94%",
+      "stat3_label": "Fraudes que bloqueamos",
+      "cta_primary": "Proteger Agora - Grátis por 30 Dias",
+      "cta_secondary": "Ver Preços e Economia",
+      "guarantee1": "Sem compromisso",
+      "guarantee2": "Cancelamento a qualquer momento",
+      "guarantee3": "Garantia de reembolso"
+    },
     "stats": {
       "detection_rate": "Taxa de Detecção",
       "false_positives": "Falsos Positivos", 

@@ -26,7 +26,6 @@ import Footer from '@/components/layout/Footer';
 import MetaTags from '@/components/seo/MetaTags';
 import StructuredData from '@/components/seo/StructuredData';
 import Link from 'next/link';
-import { TranslationDemo } from '@/components/demo/TranslationDemo';
 import { useTranslations } from '@/hooks/use-translations';
 
 export default function HomePage() {
@@ -76,51 +75,51 @@ export default function HomePage() {
   const features = [
     {
       icon: Zap,
-      title: 'Detecção Instantânea',
-      description: 'Edge computing com resposta em <50ms para bloquear fraudes em tempo real',
-      status: 'Ultrarapido',
+      title: t('homepage.features.instant_detection.title', 'Detecção Instantânea'),
+      description: t('homepage.features.instant_detection.description', 'Edge computing com resposta em <50ms para bloquear fraudes em tempo real'),
+      status: t('homepage.features.instant_detection.status', 'Ultrarapido'),
       color: 'bg-yellow-500/20 border-yellow-500/40',
-      threat: 'Bloqueia ataques antes que causem danos'
+      threat: t('homepage.features.instant_detection.threat', 'Bloqueia ataques antes que causem danos')
     },
     {
       icon: Brain,
-      title: 'Biometria Comportamental',
-      description: 'Análise de padrões de mouse, teclado e navegação para identificar fraudadores',
-      status: '🧠 Inteligência',
+      title: t('homepage.features.behavioral_biometrics.title', 'Biometria Comportamental'),
+      description: t('homepage.features.behavioral_biometrics.description', 'Análise de padrões de mouse, teclado e navegação para identificar fraudadores'),
+      status: '🧠 ' + t('homepage.features.behavioral_biometrics.status', 'Inteligência'),
       color: 'bg-blue-500/20 border-blue-500/40',
-      threat: 'Detecta bots e ataques automatizados'
+      threat: t('homepage.features.behavioral_biometrics.threat', 'Detecta bots e ataques automatizados')
     },
     {
       icon: Users,
-      title: 'Inteligência Coletiva',
-      description: 'Rede colaborativa que compartilha ameaças entre empresas anonimamente',
-      status: '🌐 Conectado',
+      title: t('homepage.features.collective_intelligence.title', 'Inteligência Coletiva'),
+      description: t('homepage.features.collective_intelligence.description', 'Rede colaborativa que compartilha ameaças entre empresas anonimamente'),
+      status: '🌐 ' + t('homepage.features.collective_intelligence.status', 'Conectado'),
       color: 'bg-green-500/20 border-green-500/40',
-      threat: 'Proteção contra ameaças globais'
+      threat: t('homepage.features.collective_intelligence.threat', 'Proteção contra ameaças globais')
     },
     {
       icon: Eye,
-      title: 'IA Explicável',
-      description: 'Cada decisão é transparente e auditável para compliance total',
-      status: '🔍 Transparente',
+      title: t('homepage.features.explainable_ai.title', 'IA Explicável'),
+      description: t('homepage.features.explainable_ai.description', 'Cada decisão é transparente e auditável para compliance total'),
+      status: '🔍 ' + t('homepage.features.explainable_ai.status', 'Transparente'),
       color: 'bg-purple-500/20 border-purple-500/40',
-      threat: 'Justifica todas as decisões para auditores'
+      threat: t('homepage.features.explainable_ai.threat', 'Justifica todas as decisões para auditores')
     },
     {
       icon: Globe,
-      title: 'Redes Neurais de Grafos',
-      description: 'Detecta esquemas complexos e fraud rings com análise de relacionamentos',
-      status: '🔥 Avançado',
+      title: t('homepage.features.graph_networks.title', 'Redes Neurais de Grafos'),
+      description: t('homepage.features.graph_networks.description', 'Detecta esquemas complexos e fraud rings com análise de relacionamentos'),
+      status: '🔥 ' + t('homepage.features.graph_networks.status', 'Avançado'),
       color: 'bg-red-500/20 border-red-500/40',
-      threat: 'Desmascara organizações criminosas'
+      threat: t('homepage.features.graph_networks.threat', 'Desmascara organizações criminosas')
     },
     {
       icon: Lock,
-      title: 'Privacidade Militar',
-      description: 'Arquitetura zero-knowledge que protege dados sensíveis',
-      status: '🔒 Blindado',
+      title: t('homepage.features.military_privacy.title', 'Privacidade Militar'),
+      description: t('homepage.features.military_privacy.description', 'Arquitetura zero-knowledge que protege dados sensíveis'),
+      status: '🔒 ' + t('homepage.features.military_privacy.status', 'Blindado'),
       color: 'bg-indigo-500/20 border-indigo-500/40',
-      threat: 'Resistência a ataques de estado'
+      threat: t('homepage.features.military_privacy.threat', 'Resistência a ataques de estado')
     }
   ];
 
@@ -248,11 +247,11 @@ export default function HomePage() {
           className="text-center mb-12"
         >
           <div className="inline-flex items-center bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-2 mb-6">
-            <span className="text-blue-400 text-sm font-medium">🔬 Tecnologia Militar</span>
+            <span className="text-blue-400 text-sm font-medium">🔬 {t('homepage.features_section.badge', 'Tecnologia Militar')}</span>
           </div>
-          <h2 className="text-4xl font-bold mb-4 text-white">Arsenal de Proteção Anti-Fraude</h2>
+          <h2 className="text-4xl font-bold mb-4 text-white">{t('homepage.features_section.title', 'Arsenal de Proteção Anti-Fraude')}</h2>
           <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            Cada componente é uma camada de <strong className="text-white">segurança impenetrável</strong> contra fraudadores.
+            {t('homepage.features_section.subtitle', 'Cada componente é uma camada de segurança impenetrável contra fraudadores.')}
           </p>
         </motion.div>
 
@@ -296,41 +295,41 @@ export default function HomePage() {
           <CardHeader>
             <div className="text-center mb-8">
               <div className="inline-flex items-center bg-red-500/10 border border-red-500/20 rounded-full px-4 py-2 mb-6">
-                <span className="text-red-400 text-sm font-medium">🚨 Monitoramento Ativo</span>
+                <span className="text-red-400 text-sm font-medium">🚨 {t('homepage.threat_intelligence.badge', 'Monitoramento Ativo')}</span>
               </div>
               <CardTitle className="text-2xl text-white mb-4">
-                Centro de Comando Anti-Fraude
+                {t('homepage.threat_intelligence.title', 'Centro de Comando Anti-Fraude')}
               </CardTitle>
               <CardDescription className="text-slate-300">
-                Todos os sistemas de proteção operando em máxima capacidade
+                {t('homepage.threat_intelligence.subtitle', 'Todos os sistemas de proteção operando em máxima capacidade')}
               </CardDescription>
             </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="text-center bg-slate-900/50 rounded-lg p-6">
-                <div className="text-2xl font-bold text-green-400 mb-2">Edge Defense</div>
+                <div className="text-2xl font-bold text-green-400 mb-2">{t('homepage.threat_intelligence.edge_defense', 'Edge Defense')}</div>
                 <div className="w-4 h-4 rounded-full mx-auto mb-2 bg-green-500 animate-pulse"></div>
-                <p className="text-sm text-slate-400">99.99% Blindagem</p>
-                <p className="text-xs text-green-400 mt-1">⚡ Resposta instantânea</p>
+                <p className="text-sm text-slate-400">{t('homepage.threat_intelligence.edge_status', '99.99% Blindagem')}</p>
+                <p className="text-xs text-green-400 mt-1">⚡ {t('homepage.threat_intelligence.edge_response', 'Resposta instantânea')}</p>
               </div>
               <div className="text-center bg-slate-900/50 rounded-lg p-6">
-                <div className="text-2xl font-bold text-blue-400 mb-2">Rede Global</div>
+                <div className="text-2xl font-bold text-blue-400 mb-2">{t('homepage.threat_intelligence.global_network', 'Rede Global')}</div>
                 <div className="w-4 h-4 rounded-full mx-auto mb-2 bg-blue-500 animate-pulse"></div>
-                <p className="text-sm text-slate-400">1,247 Sentinelas</p>
-                <p className="text-xs text-blue-400 mt-1">🌐 Cobertura mundial</p>
+                <p className="text-sm text-slate-400">{t('homepage.threat_intelligence.sentinels', '1,247 Sentinelas')}</p>
+                <p className="text-xs text-blue-400 mt-1">🌐 {t('homepage.threat_intelligence.global_coverage', 'Cobertura mundial')}</p>
               </div>
               <div className="text-center bg-slate-900/50 rounded-lg p-6">
-                <div className="text-2xl font-bold text-purple-400 mb-2">IA Vigilante</div>
+                <div className="text-2xl font-bold text-purple-400 mb-2">{t('homepage.threat_intelligence.ai_vigilant', 'IA Vigilante')}</div>
                 <div className="w-4 h-4 rounded-full mx-auto mb-2 bg-purple-500 animate-pulse"></div>
-                <p className="text-sm text-slate-400">Aprendizado Contínuo</p>
-                <p className="text-xs text-purple-400 mt-1">🧠 Evoluindo sempre</p>
+                <p className="text-sm text-slate-400">{t('homepage.threat_intelligence.continuous_learning', 'Aprendizado Contínuo')}</p>
+                <p className="text-xs text-purple-400 mt-1">🧠 {t('homepage.threat_intelligence.always_evolving', 'Evoluindo sempre')}</p>
               </div>
               <div className="text-center bg-slate-900/50 rounded-lg p-6">
-                <div className="text-2xl font-bold text-red-400 mb-2">Ameaças Neutralizadas</div>
+                <div className="text-2xl font-bold text-red-400 mb-2">{t('homepage.threat_intelligence.threats_neutralized', 'Ameaças Neutralizadas')}</div>
                 <div className="text-3xl font-bold text-green-400">{systemStatus.uptime}</div>
-                <p className="text-sm text-slate-400">Últimas 24h</p>
-                <p className="text-xs text-red-400 mt-1">🛡️ Segurança total</p>
+                <p className="text-sm text-slate-400">{t('homepage.threat_intelligence.last_24h', 'Últimas 24h')}</p>
+                <p className="text-xs text-red-400 mt-1">🛡️ {t('homepage.threat_intelligence.total_security', 'Segurança total')}</p>
               </div>
             </div>
           </CardContent>
@@ -345,42 +344,41 @@ export default function HomePage() {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="bg-gradient-to-r from-red-900/20 to-orange-900/20 border border-red-500/20 rounded-2xl p-12"
         >
-          <div className="text-6xl mb-6">⚠️</div>
+          <div className="text-6xl mb-6">{t('homepage.urgency_cta.emoji', '⚠️')}</div>
           <h2 className="text-4xl font-bold mb-6 text-white">
-            Cada Minuto Sem Proteção =
+            {t('homepage.urgency_cta.title_line1', 'Cada Minuto Sem Proteção =')}
             <br />
-            <span className="text-red-400">Dinheiro Perdido</span>
+            <span className="text-red-400">{t('homepage.urgency_cta.title_highlight', 'Dinheiro Perdido')}</span>
           </h2>
           <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
-            Enquanto você lê isso, <strong className="text-red-400">fraudadores estão atacando</strong> sistemas desprotegidos. 
-            Não seja a próxima vítima - <strong className="text-white">proteja seu negócio agora</strong>.
+            {t('homepage.urgency_cta.subtitle', 'Enquanto você lê isso, fraudadores estão atacando sistemas desprotegidos. Não seja a próxima vítima - proteja seu negócio agora.')}
           </p>
           
           <div className="flex items-center justify-center space-x-8 mb-8">
             <div className="text-center">
-              <div className="text-3xl font-bold text-red-400">R$ 137.000</div>
-              <div className="text-sm text-slate-400">Perdido por hora no Brasil</div>
+              <div className="text-3xl font-bold text-red-400">{t('homepage.urgency_cta.stat1_value', 'R$ 137.000')}</div>
+              <div className="text-sm text-slate-400">{t('homepage.urgency_cta.stat1_label', 'Perdido por hora no Brasil')}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-400">2.3 seg</div>
-              <div className="text-sm text-slate-400">Nova tentativa de fraude</div>
+              <div className="text-3xl font-bold text-orange-400">{t('homepage.urgency_cta.stat2_value', '2.3 seg')}</div>
+              <div className="text-sm text-slate-400">{t('homepage.urgency_cta.stat2_label', 'Nova tentativa de fraude')}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400">94%</div>
-              <div className="text-sm text-slate-400">Fraudes que bloqueamos</div>
+              <div className="text-3xl font-bold text-yellow-400">{t('homepage.urgency_cta.stat3_value', '94%')}</div>
+              <div className="text-sm text-slate-400">{t('homepage.urgency_cta.stat3_label', 'Fraudes que bloqueamos')}</div>
             </div>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Button size="lg" className="text-lg px-8 py-6 bg-red-500 hover:bg-red-600 text-white" asChild>
               <Link href="/signup">
-                🚀 Proteger Agora - Grátis por 30 Dias
+                🚀 {t('homepage.urgency_cta.cta_primary', 'Proteger Agora - Grátis por 30 Dias')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-red-500 text-red-400 hover:bg-red-500 hover:text-white" asChild>
               <Link href="/pricing">
-                💰 Ver Preços e Economia
+                💰 {t('homepage.urgency_cta.cta_secondary', 'Ver Preços e Economia')}
               </Link>
             </Button>
           </div>
@@ -388,34 +386,20 @@ export default function HomePage() {
           <div className="flex justify-center items-center mt-8 space-x-8 text-sm text-slate-400">
             <div className="flex items-center">
               <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
-              ✅ Sem compromisso
+              ✅ {t('homepage.urgency_cta.guarantee1', 'Sem compromisso')}
             </div>
             <div className="flex items-center">
               <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
-              ✅ Cancelamento a qualquer momento
+              ✅ {t('homepage.urgency_cta.guarantee2', 'Cancelamento a qualquer momento')}
             </div>
             <div className="flex items-center">
               <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
-              ✅ Garantia de reembolso
+              ✅ {t('homepage.urgency_cta.guarantee3', 'Garantia de reembolso')}
             </div>
           </div>
         </motion.div>
       </section>
 
-        {/* Translation Demo Section */}
-        <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                🌍 Sistema Multilingual Ativo
-              </h2>
-              <p className="text-xl text-gray-600">
-                Teste a tradução em tempo real - clique nos idiomas abaixo!
-              </p>
-            </div>
-            <TranslationDemo />
-          </div>
-        </section>
 
         <Footer />
       </div>

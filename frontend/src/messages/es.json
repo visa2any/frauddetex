@@ -128,11 +128,113 @@
     "es": "Español",
     "fr": "Français"
   },
+  "homepage": {
+    "hero": {
+      "title": "Deja de",
+      "title_highlight1": "Perder Dinero",
+      "title_with": "por",
+      "title_highlight2": "Fraudes",
+      "subtitle": "El primer sistema de protección antifraude con IA explicable del mundo. Detecta el 94% de los fraudes en tiempo real y ahorra millones.",
+      "cta_primary": "Proteger Gratis por 30 Días",
+      "cta_secondary": "Ver Demo en Vivo",
+      "alert": "ALERTA: Los fraudes cuestan $50 mil millones/año en Brasil"
+    },
+    "features_section": {
+      "badge": "Tecnología Militar",
+      "title": "Arsenal de Protección Antifraude",
+      "subtitle": "Cada componente es una capa de seguridad impenetrable contra fraudulentos."
+    },
+    "features": {
+      "instant_detection": {
+        "title": "Detección Instantánea",
+        "description": "Edge computing con respuesta en <50ms para bloquear fraudes en tiempo real",
+        "status": "Ultra-rápido",
+        "threat": "Bloquea ataques antes de que causen daño"
+      },
+      "behavioral_biometrics": {
+        "title": "Biometría Comportamental",
+        "description": "Análisis de patrones de ratón, teclado y navegación para identificar fraudulentos",
+        "status": "Inteligencia",
+        "threat": "Detecta bots y ataques automatizados"
+      },
+      "collective_intelligence": {
+        "title": "Inteligencia Colectiva",
+        "description": "Red colaborativa que comparte amenazas entre empresas de forma anónima",
+        "status": "Conectado",
+        "threat": "Protección contra amenazas globales"
+      },
+      "explainable_ai": {
+        "title": "IA Explicable",
+        "description": "Cada decisión es transparente y auditable para cumplimiento total",
+        "status": "Transparente",
+        "threat": "Justifica todas las decisiones para auditores"
+      },
+      "graph_networks": {
+        "title": "Redes Neuronales de Grafos",
+        "description": "Detecta esquemas complejos y anillos de fraude con análisis de relaciones",
+        "status": "Avanzado",
+        "threat": "Desenmascara organizaciones criminales"
+      },
+      "military_privacy": {
+        "title": "Privacidad Militar",
+        "description": "Arquitectura de conocimiento cero que protege datos sensibles",
+        "status": "Blindado",
+        "threat": "Resistencia a ataques estatales"
+      }
+    },
+    "threat_intelligence": {
+      "badge": "Monitoreo Activo",
+      "title": "Centro de Comando Antifraude",
+      "subtitle": "Todos los sistemas de protección operando a máxima capacidad",
+      "edge_defense": "Defensa Edge",
+      "edge_status": "99.99% Blindaje",
+      "edge_response": "Respuesta instantánea",
+      "global_network": "Red Global",
+      "sentinels": "1,247 Centinelas",
+      "global_coverage": "Cobertura mundial",
+      "ai_vigilant": "IA Vigilante",
+      "continuous_learning": "Aprendizaje Continuo",
+      "always_evolving": "Siempre evolucionando",
+      "threats_neutralized": "Amenazas Neutralizadas",
+      "last_24h": "Últimas 24h",
+      "total_security": "Seguridad total"
+    },
+    "urgency_cta": {
+      "emoji": "⚠️",
+      "title_line1": "Cada Minuto Sin Protección =",
+      "title_highlight": "Dinero Perdido",
+      "subtitle": "Mientras lees esto, los fraudulentos están atacando sistemas desprotegidos. No seas la próxima víctima - protege tu negocio ahora.",
+      "stat1_value": "$27,400",
+      "stat1_label": "Perdido por hora en Brasil",
+      "stat2_value": "2.3 seg",
+      "stat2_label": "Nuevo intento de fraude",
+      "stat3_value": "94%",
+      "stat3_label": "Fraudes que bloqueamos",
+      "cta_primary": "Proteger Ahora - Gratis por 30 Días",
+      "cta_secondary": "Ver Precios y Ahorros",
+      "guarantee1": "Sin compromiso",
+      "guarantee2": "Cancelar en cualquier momento",
+      "guarantee3": "Garantía de devolución"
+    },
+    "stats": {
+      "attacks_blocked": "Ataques Bloqueados",
+      "response_time": "Tiempo de Respuesta",
+      "savings_generated": "Ahorro Generado",
+      "fraud_prevented_today": "Fraudes evitados hoy",
+      "protection_rate": "Tasa de Protección",
+      "last_24h": "Últimas 24h protegidas",
+      "instant_detection": "Detección instantánea"
+    }
+  },
   "common": {
     "loading": "Cargando...",
     "error": "Error",
     "success": "Éxito",
     "back_to_home": "Volver al sitio",
-    "language": "Idioma"
+    "language": "Idioma",
+    "get_started": "Comenzar",
+    "learn_more": "Saber Más",
+    "try_free": "Probar Gratis",
+    "view_demo": "Ver Demo"
   }
 }

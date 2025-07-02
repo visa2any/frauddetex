@@ -140,6 +140,83 @@
       "trial_info": "30-day free trial • No credit card required",
       "alert": "ALERT: Fraud costs $50 billion/year in Brazil"
     },
+    "features_section": {
+      "badge": "Military Technology",
+      "title": "Anti-Fraud Protection Arsenal",
+      "subtitle": "Each component is an impenetrable security layer against fraudsters."
+    },
+    "features": {
+      "instant_detection": {
+        "title": "Instant Detection",
+        "description": "Edge computing with response in <50ms to block fraud in real-time",
+        "status": "Ultra-fast",
+        "threat": "Blocks attacks before they cause damage"
+      },
+      "behavioral_biometrics": {
+        "title": "Behavioral Biometrics",
+        "description": "Analysis of mouse, keyboard and navigation patterns to identify fraudsters",
+        "status": "Intelligence",
+        "threat": "Detects bots and automated attacks"
+      },
+      "collective_intelligence": {
+        "title": "Collective Intelligence",
+        "description": "Collaborative network that shares threats between companies anonymously",
+        "status": "Connected",
+        "threat": "Protection against global threats"
+      },
+      "explainable_ai": {
+        "title": "Explainable AI",
+        "description": "Every decision is transparent and auditable for total compliance",
+        "status": "Transparent",
+        "threat": "Justifies all decisions for auditors"
+      },
+      "graph_networks": {
+        "title": "Graph Neural Networks",
+        "description": "Detects complex schemes and fraud rings with relationship analysis",
+        "status": "Advanced",
+        "threat": "Unmasks criminal organizations"
+      },
+      "military_privacy": {
+        "title": "Military Privacy",
+        "description": "Zero-knowledge architecture that protects sensitive data",
+        "status": "Armored",
+        "threat": "Resistance to state attacks"
+      }
+    },
+    "threat_intelligence": {
+      "badge": "Active Monitoring",
+      "title": "Anti-Fraud Command Center",
+      "subtitle": "All protection systems operating at maximum capacity",
+      "edge_defense": "Edge Defense",
+      "edge_status": "99.99% Shielding",
+      "edge_response": "Instant response",
+      "global_network": "Global Network",
+      "sentinels": "1,247 Sentinels",
+      "global_coverage": "Worldwide coverage",
+      "ai_vigilant": "Vigilant AI",
+      "continuous_learning": "Continuous Learning",
+      "always_evolving": "Always evolving",
+      "threats_neutralized": "Threats Neutralized",
+      "last_24h": "Last 24h",
+      "total_security": "Total security"
+    },
+    "urgency_cta": {
+      "emoji": "⚠️",
+      "title_line1": "Every Minute Without Protection =",
+      "title_highlight": "Money Lost",
+      "subtitle": "While you read this, fraudsters are attacking unprotected systems. Don't be the next victim - protect your business now.",
+      "stat1_value": "$27,400",
+      "stat1_label": "Lost per hour in Brazil",
+      "stat2_value": "2.3 sec",
+      "stat2_label": "New fraud attempt",
+      "stat3_value": "94%",
+      "stat3_label": "Fraud we block",
+      "cta_primary": "Protect Now - Free for 30 Days",
+      "cta_secondary": "View Pricing & Savings",
+      "guarantee1": "No commitment",
+      "guarantee2": "Cancel anytime",
+      "guarantee3": "Money-back guarantee"
+    },
     "stats": {
       "detection_rate": "Detection Rate",
       "false_positives": "False Positives",
