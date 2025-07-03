@@ -38,13 +38,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (isClient && typeof window !== 'undefined') {
       // Apply theme to document
       const root = window.document.documentElement;
+      const body = window.document.body;
       
       if (theme === 'dark') {
         root.classList.add('dark');
         root.classList.remove('light');
+        body.classList.remove('theme-light');
       } else {
         root.classList.add('light');
         root.classList.remove('dark');
+        body.classList.add('theme-light');
       }
       
       // Save to localStorage

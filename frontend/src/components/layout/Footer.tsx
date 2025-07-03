@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useTheme } from '@/contexts/theme-context';
 
 const productLinks = [
   { href: '/solutions', label: 'Soluções', icon: '🎯' },
@@ -76,8 +77,31 @@ const certifications = [
 ];
 
 export default function Footer() {
+  const { theme } = useTheme();
+
+  // Classes condicionais baseadas no tema
+  const footerBgClasses = theme === 'light' 
+    ? "bg-slate-100 border-slate-200"
+    : "bg-slate-950 border-slate-800";
+
+  const textClasses = theme === 'light'
+    ? "text-slate-800"
+    : "text-white";
+
+  const subtitleClasses = theme === 'light'
+    ? "text-slate-600"
+    : "text-slate-300";
+
+  const linkClasses = theme === 'light'
+    ? "text-slate-600 hover:text-cyan-600"
+    : "text-slate-400 hover:text-cyan-400";
+
+  const ctaBgClasses = theme === 'light'
+    ? "bg-slate-200/50 border-slate-300/20"
+    : "bg-slate-900/50 border-slate-800/50";
+
   return (
-    <footer className="bg-slate-950 border-t border-slate-800 text-white">
+    <footer className={`${footerBgClasses} border-t text-white`}>
       {/* Main Footer */}
       <div className="container mx-auto px-4 py-16">
         {/* Top Section - FraudShield Revolutionary */}
@@ -100,24 +124,24 @@ export default function Footer() {
                 </span>
                 <div className="ml-3 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
               </div>
-              <div className="flex items-center text-sm text-slate-400 space-x-3 mt-1">
+              <div className={`flex items-center text-sm space-x-3 mt-1 ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
                 <span>🔒 Proteção 24/7</span>
                 <span>•</span>
                 <span>🚀 IA Explicável</span>
               </div>
             </div>
           </div>
-          <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
-            O sistema mais avançado de <strong className="text-white">detecção de fraudes</strong> do mundo. 
+          <p className={`text-xl mb-8 max-w-3xl mx-auto ${subtitleClasses}`}>
+            O sistema mais avançado de <strong className={textClasses}>detecção de fraudes</strong> do mundo. 
             Proteja seu negócio com <strong className="bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">IA explicável</strong> e defesa em tempo real.
           </p>
           
           {/* CTA Section */}
-          <div className="bg-gradient-to-r from-slate-900/50 to-slate-800/50 rounded-2xl p-8 mb-12 border border-red-500/20">
-            <h3 className="text-2xl font-bold text-white mb-4">
+          <div className={`${ctaBgClasses} rounded-2xl p-8 mb-12 border border-red-500/20`}>
+            <h3 className={`text-2xl font-bold mb-4 ${textClasses}`}>
               Pare de Perder Dinheiro com Fraudes
             </h3>
-            <p className="text-slate-300 mb-6">
+            <p className={`${subtitleClasses} mb-6`}>
               Teste grátis por 30 dias e veja como podemos proteger seu negócio
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -144,7 +168,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Services */}
           <div>
-            <h3 className="font-bold text-lg mb-6 text-white flex items-center">
+            <h3 className={`font-bold text-lg mb-6 flex items-center ${textClasses}`}>
               <span className="mr-2">🚀</span>
               Serviços
             </h3>
@@ -153,7 +177,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link 
                     href={link.href} 
-                    className="flex items-center space-x-2 text-slate-400 hover:text-cyan-400 transition-colors"
+                    className={`flex items-center space-x-2 transition-colors ${linkClasses}`}
                   >
                     <span>{link.icon}</span>
                     <span>{link.label}</span>
@@ -165,7 +189,7 @@ export default function Footer() {
 
           {/* Technologies */}
           <div>
-            <h3 className="font-bold text-lg mb-6 text-white flex items-center">
+            <h3 className={`font-bold text-lg mb-6 flex items-center ${textClasses}`}>
               <span className="mr-2">🔧</span>
               Tecnologias
             </h3>
@@ -174,7 +198,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link 
                     href={link.href} 
-                    className="flex items-center space-x-2 text-slate-400 hover:text-cyan-400 transition-colors"
+                    className={`flex items-center space-x-2 transition-colors ${linkClasses}`}
                   >
                     <span>{link.icon}</span>
                     <span>{link.label}</span>
@@ -186,7 +210,7 @@ export default function Footer() {
 
           {/* Portfolio */}
           <div>
-            <h3 className="font-bold text-lg mb-6 text-white flex items-center">
+            <h3 className={`font-bold text-lg mb-6 flex items-center ${textClasses}`}>
               <span className="mr-2">🏆</span>
               Portfolio
             </h3>
@@ -195,7 +219,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link 
                     href={link.href} 
-                    className="flex items-center space-x-2 text-slate-400 hover:text-cyan-400 transition-colors"
+                    className={`flex items-center space-x-2 transition-colors ${linkClasses}`}
                   >
                     <span>{link.icon}</span>
                     <span>{link.label}</span>
@@ -207,7 +231,7 @@ export default function Footer() {
 
           {/* Company */}
           <div>
-            <h3 className="font-bold text-lg mb-6 text-white flex items-center">
+            <h3 className={`font-bold text-lg mb-6 flex items-center ${textClasses}`}>
               <span className="mr-2">🏢</span>
               Empresa
             </h3>
@@ -216,7 +240,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link 
                     href={link.href} 
-                    className="flex items-center space-x-2 text-slate-400 hover:text-cyan-400 transition-colors"
+                    className={`flex items-center space-x-2 transition-colors ${linkClasses}`}
                   >
                     <span>{link.icon}</span>
                     <span>{link.label}</span>
@@ -227,106 +251,22 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Certifications */}
-        <div className="mb-12">
-          <h3 className="text-center text-lg font-bold text-white mb-6">
-            🏆 Certificações e Especialidades
-          </h3>
-          <div className="flex flex-wrap items-center justify-center gap-6">
-            {certifications.map((cert, index) => (
-              <div 
-                key={index} 
-                className="flex items-center space-x-2 bg-slate-900/50 rounded-lg px-4 py-2 border border-cyan-500/20"
-              >
-                <span className="text-lg">{cert.icon}</span>
-                <span className="text-sm font-medium text-slate-300">{cert.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Bottom Section */}
+        <div className="border-t border-slate-700 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            {/* Copyright */}
+            <div className={`text-sm ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'} mb-4 md:mb-0`}>
+              © 2024 FraudDetex. Todos os direitos reservados.
+            </div>
 
-        {/* Contact Info */}
-        <div className="bg-gradient-to-r from-slate-900/30 to-slate-800/30 rounded-xl p-8 mb-8 border border-red-500/20">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="text-2xl mb-2">📧</div>
-              <h4 className="font-semibold text-white mb-2">Contato</h4>
-              <p className="text-red-400 font-medium">info@frauddetex.com</p>
-              <p className="text-slate-400 text-sm">Resposta em 2h</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl mb-2">🚨</div>
-              <h4 className="font-semibold text-white mb-2">Emergências</h4>
-              <p className="text-red-400 font-medium">24/7 SOC</p>
-              <p className="text-slate-400 text-sm">Proteção contínua</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl mb-2">🌍</div>
-              <h4 className="font-semibold text-white mb-2">Cobertura Global</h4>
-              <p className="text-slate-400">Proteção mundial</p>
-              <p className="text-slate-400">Edge computing</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-400 mb-1">94%</div>
-            <div className="text-sm text-slate-400">Taxa de Detecção</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-orange-400 mb-1">&lt;50ms</div>
-            <div className="text-sm text-slate-400">Tempo de Resposta</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-400 mb-1">50M+</div>
-            <div className="text-sm text-slate-400">Transações Protegidas</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-400 mb-1">99.9%</div>
-            <div className="text-sm text-slate-400">Uptime SLA</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Bar */}
-      <div className="border-t border-slate-800 py-6">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="text-center md:text-left mb-4 md:mb-0">
-              <p className="text-slate-400">
-                &copy; 2024 FraudDetex. Todos os direitos reservados.
-              </p>
-              <p className="text-slate-500 text-sm mt-1">
-                Protegendo negócios digitais contra fraudes desde 2024
-              </p>
-            </div>
-            
-            <div className="flex items-center space-x-6">
-              <Link 
-                href="/privacy" 
-                className="text-slate-400 hover:text-red-400 transition-colors text-sm"
-              >
-                Privacidade
-              </Link>
-              <Link 
-                href="/terms" 
-                className="text-slate-400 hover:text-red-400 transition-colors text-sm"
-              >
-                Termos
-              </Link>
-              <Link 
-                href="/cookies" 
-                className="text-slate-400 hover:text-red-400 transition-colors text-sm"
-              >
-                Cookies
-              </Link>
-              <div className="flex items-center space-x-3">
-                <span className="text-slate-500 text-sm">Feito com</span>
-                <span className="text-red-500">❤️</span>
-                <span className="text-slate-500 text-sm">no Brasil</span>
-              </div>
+            {/* Certifications */}
+            <div className="flex items-center space-x-4">
+              {certifications.map((cert) => (
+                <div key={cert.name} className={`flex items-center space-x-1 text-xs ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>
+                  <span>{cert.icon}</span>
+                  <span>{cert.name}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

@@ -27,9 +27,11 @@ import MetaTags from '@/components/seo/MetaTags';
 import StructuredData from '@/components/seo/StructuredData';
 import Link from 'next/link';
 import { useTranslations } from '@/hooks/use-translations';
+import { useTheme } from '@/contexts/theme-context';
 
 export default function HomePage() {
   const { t } = useTranslations();
+  const { theme } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [systemStatus, setSystemStatus] = useState({
     edge: 'online',
@@ -125,14 +127,31 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">{t('common.loading', 'Carregando...')}</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">{t('common.loading', 'Carregando...')}</p>
         </div>
       </div>
     );
   }
+
+  // Classes condicionais baseadas no tema
+  const heroBgClasses = theme === 'light' 
+    ? "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50"
+    : "bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900";
+
+  const cardBgClasses = theme === 'light'
+    ? "bg-white/80 border-slate-200"
+    : "bg-slate-800/50 border-slate-700";
+
+  const textClasses = theme === 'light'
+    ? "text-slate-800"
+    : "text-white";
+
+  const subtitleClasses = theme === 'light'
+    ? "text-slate-600"
+    : "text-slate-300";
 
   return (
     <>
@@ -146,7 +165,7 @@ export default function HomePage() {
       <StructuredData type="organization" />
       <StructuredData type="product" />
       
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className={`min-h-screen ${heroBgClasses}`}>
         <Header variant="homepage" />
 
       {/* Hero Section */}
@@ -160,12 +179,12 @@ export default function HomePage() {
             <span className="text-red-400 text-sm font-medium">🚨 {t('homepage.hero.alert', 'ALERTA: Fraudes custam R$ 50 bilhões/ano no Brasil')}</span>
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 text-white">
+          <h1 className={`text-5xl md:text-7xl font-bold mb-6 ${textClasses}`}>
             {t('homepage.hero.title', 'Pare de')} <span className="text-red-400">{t('homepage.hero.title_highlight1', 'Perder Dinheiro')}</span>
             <br />
             {t('homepage.hero.title_with', 'com')} <span className="text-red-400">{t('homepage.hero.title_highlight2', 'Fraudes')}</span>
           </h1>
-          <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
+          <p className={`text-xl mb-8 max-w-3xl mx-auto ${subtitleClasses}`}>
             {t('homepage.hero.subtitle', 'O primeiro sistema de proteção anti-fraude com IA explicável do mundo. Detecte 94% das fraudes em tempo real e economize milhões.')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -192,42 +211,42 @@ export default function HomePage() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="grid grid-cols-1 md:grid-cols-4 gap-6"
         >
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className={cardBgClasses}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">{t('homepage.stats.attacks_blocked', 'Ataques Bloqueados')}</CardTitle>
+              <CardTitle className={`text-sm font-medium ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{t('homepage.stats.attacks_blocked', 'Ataques Bloqueados')}</CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-400">{realtimeStats.requestsProcessed.toLocaleString()}</div>
-              <p className="text-xs text-slate-400">{t('homepage.stats.last_24h', 'Últimas 24h protegidas')}</p>
+              <p className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>{t('homepage.stats.last_24h', 'Últimas 24h protegidas')}</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className={cardBgClasses}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">{t('homepage.stats.response_time', 'Tempo de Resposta')}</CardTitle>
+              <CardTitle className={`text-sm font-medium ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{t('homepage.stats.response_time', 'Tempo de Resposta')}</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-400">{realtimeStats.averageLatency}ms</div>
-              <p className="text-xs text-slate-400">{t('homepage.stats.instant_detection', 'Detecção instantânea')}</p>
+              <p className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>{t('homepage.stats.instant_detection', 'Detecção instantânea')}</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className={cardBgClasses}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">{t('homepage.stats.savings_generated', 'Economia Gerada')}</CardTitle>
+              <CardTitle className={`text-sm font-medium ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{t('homepage.stats.savings_generated', 'Economia Gerada')}</CardTitle>
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-400">R$ {(realtimeStats.fraudDetected * 4500).toLocaleString()}</div>
-              <p className="text-xs text-slate-400">{t('homepage.stats.fraud_prevented_today', 'Fraudes evitadas hoje')}</p>
+              <p className={`text-xs ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>{t('homepage.stats.fraud_prevented_today', 'Fraudes evitadas hoje')}</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className={cardBgClasses}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">{t('homepage.stats.protection_rate', 'Taxa de Proteção')}</CardTitle>
+              <CardTitle className={`text-sm font-medium ${theme === 'light' ? 'text-slate-700' : 'text-slate-300'}`}>{t('homepage.stats.protection_rate', 'Taxa de Proteção')}</CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -249,8 +268,8 @@ export default function HomePage() {
           <div className="inline-flex items-center bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-2 mb-6">
             <span className="text-blue-400 text-sm font-medium">🔬 {t('homepage.features_section.badge', 'Tecnologia Militar')}</span>
           </div>
-          <h2 className="text-4xl font-bold mb-4 text-white">{t('homepage.features_section.title', 'Arsenal de Proteção Anti-Fraude')}</h2>
-          <p className="text-xl text-slate-300 max-w-2xl mx-auto">
+          <h2 className={`text-4xl font-bold mb-4 ${textClasses}`}>{t('homepage.features_section.title', 'Arsenal de Proteção Anti-Fraude')}</h2>
+          <p className={`text-xl max-w-2xl mx-auto ${subtitleClasses}`}>
             {t('homepage.features_section.subtitle', 'Cada componente é uma camada de segurança impenetrável contra fraudadores.')}
           </p>
         </motion.div>
@@ -263,18 +282,18 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 * index }}
             >
-              <Card className={`bg-slate-800/50 border-2 ${feature.color} hover:scale-105 transition-all duration-300`}>
+              <Card className={`${theme === 'light' ? 'bg-white/80 border-slate-200' : 'bg-slate-800/50 border-slate-700'} border-2 ${feature.color} hover:scale-105 transition-all duration-300`}>
                 <CardHeader>
                   <div className="flex items-center justify-between mb-4">
                     <div className={`p-3 rounded-full ${feature.color}`}>
                       <feature.icon className="h-6 w-6 text-white" />
                     </div>
-                    <Badge className="bg-slate-700 text-slate-300">
+                    <Badge className={`${theme === 'light' ? 'bg-slate-200 text-slate-700' : 'bg-slate-700 text-slate-300'}`}>
                       {feature.status}
                     </Badge>
                   </div>
-                  <CardTitle className="text-xl text-white mb-3">{feature.title}</CardTitle>
-                  <CardDescription className="text-slate-300 text-base mb-4">
+                  <CardTitle className={`text-xl mb-3 ${textClasses}`}>{feature.title}</CardTitle>
+                  <CardDescription className={`text-base mb-4 ${subtitleClasses}`}>
                     {feature.description}
                   </CardDescription>
                   <div className="bg-red-900/20 border border-red-500/20 rounded-lg p-3">
@@ -291,44 +310,44 @@ export default function HomePage() {
 
       {/* Threat Intelligence */}
       <section className="container mx-auto px-4 py-16">
-        <Card className="bg-slate-800/50 border-slate-700">
+        <Card className={cardBgClasses}>
           <CardHeader>
             <div className="text-center mb-8">
               <div className="inline-flex items-center bg-red-500/10 border border-red-500/20 rounded-full px-4 py-2 mb-6">
                 <span className="text-red-400 text-sm font-medium">🚨 {t('homepage.threat_intelligence.badge', 'Monitoramento Ativo')}</span>
               </div>
-              <CardTitle className="text-2xl text-white mb-4">
+              <CardTitle className={`text-2xl mb-4 ${textClasses}`}>
                 {t('homepage.threat_intelligence.title', 'Centro de Comando Anti-Fraude')}
               </CardTitle>
-              <CardDescription className="text-slate-300">
+              <CardDescription className={subtitleClasses}>
                 {t('homepage.threat_intelligence.subtitle', 'Todos os sistemas de proteção operando em máxima capacidade')}
               </CardDescription>
             </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="text-center bg-slate-900/50 rounded-lg p-6">
+              <div className={`text-center ${theme === 'light' ? 'bg-slate-100/50' : 'bg-slate-900/50'} rounded-lg p-6`}>
                 <div className="text-2xl font-bold text-green-400 mb-2">{t('homepage.threat_intelligence.edge_defense', 'Edge Defense')}</div>
                 <div className="w-4 h-4 rounded-full mx-auto mb-2 bg-green-500 animate-pulse"></div>
-                <p className="text-sm text-slate-400">{t('homepage.threat_intelligence.edge_status', '99.99% Blindagem')}</p>
+                <p className={`text-sm ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>{t('homepage.threat_intelligence.edge_status', '99.99% Blindagem')}</p>
                 <p className="text-xs text-green-400 mt-1">⚡ {t('homepage.threat_intelligence.edge_response', 'Resposta instantânea')}</p>
               </div>
-              <div className="text-center bg-slate-900/50 rounded-lg p-6">
+              <div className={`text-center ${theme === 'light' ? 'bg-slate-100/50' : 'bg-slate-900/50'} rounded-lg p-6`}>
                 <div className="text-2xl font-bold text-blue-400 mb-2">{t('homepage.threat_intelligence.global_network', 'Rede Global')}</div>
                 <div className="w-4 h-4 rounded-full mx-auto mb-2 bg-blue-500 animate-pulse"></div>
-                <p className="text-sm text-slate-400">{t('homepage.threat_intelligence.sentinels', '1,247 Sentinelas')}</p>
+                <p className={`text-sm ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>{t('homepage.threat_intelligence.sentinels', '1,247 Sentinelas')}</p>
                 <p className="text-xs text-blue-400 mt-1">🌐 {t('homepage.threat_intelligence.global_coverage', 'Cobertura mundial')}</p>
               </div>
-              <div className="text-center bg-slate-900/50 rounded-lg p-6">
+              <div className={`text-center ${theme === 'light' ? 'bg-slate-100/50' : 'bg-slate-900/50'} rounded-lg p-6`}>
                 <div className="text-2xl font-bold text-purple-400 mb-2">{t('homepage.threat_intelligence.ai_vigilant', 'IA Vigilante')}</div>
                 <div className="w-4 h-4 rounded-full mx-auto mb-2 bg-purple-500 animate-pulse"></div>
-                <p className="text-sm text-slate-400">{t('homepage.threat_intelligence.continuous_learning', 'Aprendizado Contínuo')}</p>
+                <p className={`text-sm ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>{t('homepage.threat_intelligence.continuous_learning', 'Aprendizado Contínuo')}</p>
                 <p className="text-xs text-purple-400 mt-1">🧠 {t('homepage.threat_intelligence.always_evolving', 'Evoluindo sempre')}</p>
               </div>
-              <div className="text-center bg-slate-900/50 rounded-lg p-6">
+              <div className={`text-center ${theme === 'light' ? 'bg-slate-100/50' : 'bg-slate-900/50'} rounded-lg p-6`}>
                 <div className="text-2xl font-bold text-red-400 mb-2">{t('homepage.threat_intelligence.threats_neutralized', 'Ameaças Neutralizadas')}</div>
                 <div className="text-3xl font-bold text-green-400">{systemStatus.uptime}</div>
-                <p className="text-sm text-slate-400">{t('homepage.threat_intelligence.last_24h', 'Últimas 24h')}</p>
+                <p className={`text-sm ${theme === 'light' ? 'text-slate-600' : 'text-slate-400'}`}>{t('homepage.threat_intelligence.last_24h', 'Últimas 24h')}</p>
                 <p className="text-xs text-red-400 mt-1">🛡️ {t('homepage.threat_intelligence.total_security', 'Segurança total')}</p>
               </div>
             </div>
@@ -345,27 +364,27 @@ export default function HomePage() {
           className="bg-gradient-to-r from-red-900/20 to-orange-900/20 border border-red-500/20 rounded-2xl p-12"
         >
           <div className="text-6xl mb-6">{t('homepage.urgency_cta.emoji', '⚠️')}</div>
-          <h2 className="text-4xl font-bold mb-6 text-white">
+          <h2 className={`text-4xl font-bold mb-6 ${textClasses}`}>
             {t('homepage.urgency_cta.title_line1', 'Cada Minuto Sem Proteção =')}
             <br />
             <span className="text-red-400">{t('homepage.urgency_cta.title_highlight', 'Dinheiro Perdido')}</span>
           </h2>
-          <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
+          <p className={`text-xl mb-8 max-w-3xl mx-auto ${subtitleClasses}`}>
             {t('homepage.urgency_cta.subtitle', 'Enquanto você lê isso, fraudadores estão atacando sistemas desprotegidos. Não seja a próxima vítima - proteja seu negócio agora.')}
           </p>
           
           <div className="flex items-center justify-center space-x-8 mb-8">
             <div className="text-center">
               <div className="text-3xl font-bold text-red-400">{t('homepage.urgency_cta.stat1_value', 'R$ 137.000')}</div>
-              <div className="text-sm text-slate-400">{t('homepage.urgency_cta.stat1_label', 'Perdido por hora no Brasil')}</div>
+              <div className={`text-sm ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>{t('homepage.urgency_cta.stat1_label', 'Perdido por hora no Brasil')}</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-orange-400">{t('homepage.urgency_cta.stat2_value', '2.3 seg')}</div>
-              <div className="text-sm text-slate-400">{t('homepage.urgency_cta.stat2_label', 'Nova tentativa de fraude')}</div>
+              <div className={`text-sm ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>{t('homepage.urgency_cta.stat2_label', 'Nova tentativa de fraude')}</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-yellow-400">{t('homepage.urgency_cta.stat3_value', '94%')}</div>
-              <div className="text-sm text-slate-400">{t('homepage.urgency_cta.stat3_label', 'Fraudes que bloqueamos')}</div>
+              <div className={`text-sm ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>{t('homepage.urgency_cta.stat3_label', 'Fraudes que bloqueamos')}</div>
             </div>
           </div>
           
@@ -383,7 +402,7 @@ export default function HomePage() {
             </Button>
           </div>
           
-          <div className="flex justify-center items-center mt-8 space-x-8 text-sm text-slate-400">
+          <div className={`flex justify-center items-center mt-8 space-x-8 text-sm ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
             <div className="flex items-center">
               <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
               ✅ {t('homepage.urgency_cta.guarantee1', 'Sem compromisso')}
