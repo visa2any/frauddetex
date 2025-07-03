@@ -91,7 +91,7 @@ export default function TestThemePage() {
         <div className="mt-8 bg-card p-6 rounded-lg border">
           <h2 className="text-2xl font-semibold mb-4">Como Testar</h2>
           <ol className="list-decimal list-inside space-y-2">
-            <li>Clique no botão "Alternar Tema" para mudar entre claro e escuro</li>
+            <li>Clique no botão &quot;Alternar Tema&quot; para mudar entre claro e escuro</li>
             <li>Observe como as cores mudam automaticamente</li>
             <li>Recarregue a página para ver se o tema persiste</li>
             <li>Verifique se as classes CSS estão sendo aplicadas corretamente</li>
